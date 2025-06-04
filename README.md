@@ -29,8 +29,7 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 ---
 
 ### 🔓 License
-MIT — public, modifiable, and free.  
-Built for learning, flexing, and redefining what "offline" AI can be.
+proprietary  
 
 ---
 
