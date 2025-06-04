@@ -28,8 +28,14 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 
 ---
 
-### 🔓 License
-proprietary  
+### 🔒 License
+
+This project is proprietary and not open-source.
+
+    The core logic and architecture of dependent-less-llm.c are licensed exclusively to Silent Prototype Labs and BuiltByWill.
+    Redistribution, modification, or reuse of any part of this system is prohibited without written permission.
+
+If you're interested in collaboration, licensing, or research use, contact: builtbywill@proton.me. 
 
 ---
 
