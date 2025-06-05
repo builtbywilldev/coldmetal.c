@@ -8,7 +8,6 @@
 #include <time.h>
 #include <stdlib.h>
 
-
 #include "tokenizer.h"
 #include "embedder.h"
 #include "attention.h"
@@ -77,20 +76,15 @@ int main()
             }
         }
 
+        printf("\n[Score: %.4f]\n", best_score);
         const char *response = "I'm not sure what to say yet.";
 
         if (best_index >= 0)
         {
             if (best_score > 0.96f)
             {
-                // 🧠 Don't return the same line over and over
-                int rand_index;
-                do {
-                    rand_index = rand() % memory_count_items();
-                } while (rand_index == last_index);
-
-                response = memory_get_text(rand_index);
-                last_index = rand_index;
+                response = memory_get_text(best_index);
+                last_index = best_index;
             }
             else if (best_score > 0.75f)
             {
