@@ -1,4 +1,4 @@
-# 🧠 dependent-less-llm.c  
+# 🧠 coldmetal.c  
 A fully offline, zero-dependency AI system inspired by `llm.c` — engineered for airgapped environments.  
 Built in pure C with no Python, no external libraries, and no cloud ties.  
 
@@ -23,7 +23,7 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 - `dracula.mem`
 - `sherlock.mem`
 - `declaration.mem`
-- `letters.mem`
+- `snowden.mem`
 - And more...
 
 ---
@@ -32,7 +32,7 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 
 This project is proprietary and not open-source.
 
-    The core logic and architecture of dependent-less-llm.c are licensed exclusively to Silent Prototype Labs and BuiltByWill.
+    The core logic and architecture of coldmetal.c are licensed exclusively to Silent Prototype Labs and BuiltByWill.
     Redistribution, modification, or reuse of any part of this system is prohibited without written permission.
 
 If you're interested in collaboration, licensing, or research use, contact: builtbywill@proton.me. 
