@@ -5,36 +5,61 @@
 
 #include <string.h>
 #include <ctype.h>
+#include <stdio.h>
 #include "logic.h"
 #include "embedder.h"
 #include "attention.h"
 #include "tokenizer.h"
-
+#include "memory.h"
+#include "math.h"
 
 const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
-    const char* known_phrases[] = {"hello", "hi", "greetings"};
-    const char* replies[] = {
-        "Hello, Operator.",
-        "Hi there.",
-        "Coldmetal online."
-    };
+    float input_vec[EMBEDDING_SIZE] = {0};
 
-    int phrase_count = sizeof(known_phrases) / sizeof(known_phrases[0]);
-    float input_vec[EMBEDDING_SIZE];
-    float greeting_vec[EMBEDDING_SIZE];
-
+    // === 1. Average embed all input tokens into a single vector ===
     for (int i = 0; i < num_tokens; i++) {
-        embed_token(tokens[i], input_vec);
+        float temp_vec[EMBEDDING_SIZE];
+        embed_token(tokens[i], temp_vec);
+        for (int j = 0; j < EMBEDDING_SIZE; j++)
+            input_vec[j] += temp_vec[j];
+    }
+    for (int j = 0; j < EMBEDDING_SIZE; j++)
+        input_vec[j] /= (float)num_tokens;
 
-        for (int j = 0; j < phrase_count; j++) {
-            embed_token(known_phrases[j], greeting_vec);
-            float similarity = cosine_similarity(input_vec, greeting_vec, EMBEDDING_SIZE);
+    normalize_vector(input_vec, EMBEDDING_SIZE);
 
-            if (similarity > 0.90f) {
-                return replies[j];
-            }
+    // === 2. Scan memory for best match ===
+    int mem_count = memory_count();
+    float best_score = -1.0f;
+    int best_index = -1;
+    float scores[mem_count];
+
+    for (int i = 0; i < mem_count; i++) {
+        float* mem_vec = memory_get_vector(i);
+        normalize_vector(mem_vec, EMBEDDING_SIZE);
+        float score = cosine_similarity(input_vec, mem_vec, EMBEDDING_SIZE);
+        scores[i] = score;
+
+        if (score > best_score) {
+            best_score = score;
+            best_index = i;
         }
     }
 
-    return "I'm not sure what to say yet.";
+    // === 3. Echo suppression ===
+    if (best_score > 0.99f) {
+        return "You've already said that. Ask me something new.";
+    }
+
+    // === 4. Softmax match (for future randomness / reply blend) ===
+    float softmaxed[mem_count];
+    softmax(scores, softmaxed, mem_count);
+
+    // Optional: pick based on top softmax score
+    if (best_score > 0.85f && best_index >= 0) {
+        return memory_get_text(best_index);
+    }
+
+    // === 5. Fallback ===
+    return "I don't recognize that yet, but I'm learning.";
 }

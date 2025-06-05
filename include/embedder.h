@@ -5,9 +5,9 @@
 #ifndef EMBEDDER_H
 #define EMBEDDER_H
 
-#define EMBEDDING_SIZE 16
+#define EMBEDDING_SIZE 64
 
 void embed_token(const char *token, float *vector);
+void embed_text(const char* text, float* out_vector);
 
 #endif
-

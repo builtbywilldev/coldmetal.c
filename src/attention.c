@@ -3,9 +3,10 @@
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
 
-#include <math.h>
+
 #include "attention.h"
 #include "tokenizer.h"
+#include <math.h>
 
 
 float dot_product(const float *a, const float *b, int size) {
