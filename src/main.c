@@ -2,7 +2,6 @@
 // main.c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
-#define _ISOC99_SOURCE
 
 #include <stdio.h>
 #include <string.h>
@@ -30,12 +29,11 @@ int main() {
 
     while (1) {
         printf(">> ");
-        fgets(input, sizeof(input), stdin);
+        if (!fgets(input, sizeof(input), stdin)) break;
+
         if (strncmp(input, "exit", 4) == 0) break;
-
         input[strcspn(input, "\n")] = '\0';
-
-        if (strlen(input) < 2) continue;  // skip empties
+        if (strlen(input) < 2) continue;
 
         tokenize(input, tokens, &num_tokens);
 
@@ -51,13 +49,12 @@ int main() {
 
         normalize_vector(input_vec, EMBEDDING_SIZE);
 
-        // === Memory Recall ===
         float best_score = -1.0f;
         int best_index = -1;
 
         for (int i = 0; i < memory_count_items(); i++) {
             const char *mem_text = memory_get_text(i);
-            if (strcmp(input, mem_text) == 0) continue;  // 🚫 skip perfect echo
+            if (strcmp(input, mem_text) == 0) continue;
 
             float *mem_vec = memory_get_vector(i);
             normalize_vector(mem_vec, EMBEDDING_SIZE);
@@ -103,7 +100,6 @@ int main() {
             response = soft_fallbacks[rand() % 5];
         }
 
-        // === Final Output ===
         remember(input);
         remember(response);
         printf("Morpheus: %s\n", response);

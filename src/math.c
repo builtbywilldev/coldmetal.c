@@ -4,7 +4,6 @@
 // Author: BuiltByWill | Format: Precision-First, Dependency-Free
 // ===============================================================
 
-#define _ISOC99_SOURCE
 #define _POSIX_C_SOURCE 200112L
 #define _GNU_SOURCE
 

@@ -2,7 +2,6 @@
 // attention.c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
-#define _ISOC99_SOURCE
 #define _GNU_SOURCE
 
 #include <math.h>     // sqrtf

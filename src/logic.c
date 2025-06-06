@@ -3,7 +3,6 @@
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
 
-#define _ISOC99_SOURCE
 
 #include <string.h>
 #include <ctype.h>
