@@ -1,13 +1,16 @@
 #!/bin/bash
 
-echo "Starting batch training from /data/untrained"
+echo "🚀 Starting batch training from /data/untrained"
 
-for file in data/untrained/*.txt; do
-    base=$(basename "$file" .txt)
-    output="data/.mem/${base}.mem"
+shopt -s nullglob  # avoid issues if no files found
 
-    echo "Training $file → $output"
-    ./trainer "$file" "$output"
+for file in data/untrained/*.{txt,json}; do
+    base=$(basename "$file")
+    name="${base%.*}"
+    output="data/.mem/${name}.mem"
+
+    echo "📚 Training $file → $output"
+    ./train "$file" "$output"
 done
 
-echo "All datasets trained and saved to /data/.mem/"
+echo "✅ All datasets trained and saved to /data/.mem/"

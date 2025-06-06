@@ -1,14 +1,21 @@
 // ===============================================================
-// Silent Prototype — BuiltByWill
+// attention.c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
+#define _ISOC99_SOURCE
+#define _GNU_SOURCE
 
+#include <math.h>     // sqrtf
+#include <float.h>    // FLT_EPSILON
+#include <stdio.h>
 
-#include "attention.h"
-#include "tokenizer.h"
-#include <math.h>
+#include "../include/tokenizer.h"
+#include "../include/attention.h"
+#include "../include/memory.h"
 
-
+// ---------------------------------------------------------------
+// Computes the dot product between two float vectors
+// ---------------------------------------------------------------
 float dot_product(const float *a, const float *b, int size) {
     float sum = 0.0f;
     for (int i = 0; i < size; i++) {
@@ -17,8 +24,13 @@ float dot_product(const float *a, const float *b, int size) {
     return sum;
 }
 
+// ---------------------------------------------------------------
+// Computes the cosine similarity between two float vectors
+// ---------------------------------------------------------------
 float cosine_similarity(const float *a, const float *b, int size) {
-    float dot = 0.0f, mag_a = 0.0f, mag_b = 0.0f;
+    float dot   = 0.0f;
+    float mag_a = 0.0f;
+    float mag_b = 0.0f;
 
     for (int i = 0; i < size; i++) {
         dot   += a[i] * b[i];
@@ -27,5 +39,6 @@ float cosine_similarity(const float *a, const float *b, int size) {
     }
 
     float denom = sqrtf(mag_a) * sqrtf(mag_b);
-    return denom != 0 ? dot / denom : 0.0f;
+    if (denom < FLT_EPSILON) return 0.0f;
+    return dot / denom;
 }

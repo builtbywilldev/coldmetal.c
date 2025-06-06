@@ -1,4 +1,5 @@
 // ===============================================================
+// attention.h — Core Similarity Functions
 // Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
@@ -6,7 +7,10 @@
 #ifndef ATTENTION_H
 #define ATTENTION_H
 
+// Computes the dot product between two vectors
 float dot_product(const float *a, const float *b, int size);
+
+// Computes cosine similarity between two vectors
 float cosine_similarity(const float *a, const float *b, int size);
 
-#endif
+#endif  // ATTENTION_H

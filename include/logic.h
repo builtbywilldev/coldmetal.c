@@ -1,4 +1,5 @@
 // ===============================================================
+// logic.h — Inference and Response Logic
 // Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
@@ -8,6 +9,7 @@
 
 #include "tokenizer.h"
 
+// Generates a response from embedded memory context
 const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens);
 
-#endif
+#endif  // LOGIC_H

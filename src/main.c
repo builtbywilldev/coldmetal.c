@@ -1,111 +1,111 @@
 // ===============================================================
-// Silent Prototype — BuiltByWill
+// main.c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
+#define _ISOC99_SOURCE
 
 #include <stdio.h>
 #include <string.h>
-#include <time.h>
 #include <stdlib.h>
+#include <time.h>
+#include <math.h>
 
-#include "tokenizer.h"
-#include "embedder.h"
-#include "attention.h"
-#include "memory.h"
-#include "math.h"
+#include "../include/tokenizer.h"
+#include "../include/embedder.h"
+#include "../include/attention.h"
+#include "../include/memory.h"
 
 #define MEMORY_PATH "data/.mem/morpheus.mem"
 
-int main()
-{
-    srand(time(NULL));   // 🔑 Seed random number generator
-    load_all_memories(); // loads all .mem files from data/.mem/
+int main() {
+    srand(time(NULL));  // 🔑 Seed RNG
+    load_all_memories(); // 📥 Load all memory files
 
     char input[256];
     char tokens[MAX_TOKENS][MAX_TOKEN_LEN];
     int num_tokens;
-    int last_index = -1;  // 🧠 Memory index buffer to avoid repeats
+    int last_response_index = -1;
 
-    printf("Morpheus Booted. Type something:\n");
+    printf("Morpheus: Online. Input your thought:\n");
 
-    while (1)
-    {
+    while (1) {
         printf(">> ");
         fgets(input, sizeof(input), stdin);
+        if (strncmp(input, "exit", 4) == 0) break;
 
-        if (strncmp(input, "exit", 4) == 0)
-            break;
+        input[strcspn(input, "\n")] = '\0';
 
-        input[strcspn(input, "\n")] = '\0'; // Strip newline
-        remember(input);                    // Store user input
+        if (strlen(input) < 2) continue;  // skip empties
 
-        // === Tokenize + Embed entire sentence ===
         tokenize(input, tokens, &num_tokens);
 
-        float input_vec[EMBEDDING_SIZE] = {0};
-
-        for (int i = 0; i < num_tokens; i++)
-        {
+        float input_vec[EMBEDDING_SIZE] = {0.0f};
+        for (int i = 0; i < num_tokens; i++) {
             float temp[EMBEDDING_SIZE];
             embed_token(tokens[i], temp);
             for (int j = 0; j < EMBEDDING_SIZE; j++)
-            {
                 input_vec[j] += temp[j];
-            }
         }
-
         for (int j = 0; j < EMBEDDING_SIZE; j++)
             input_vec[j] /= (float)num_tokens;
 
         normalize_vector(input_vec, EMBEDDING_SIZE);
 
-        // === Score all memory entries ===
+        // === Memory Recall ===
         float best_score = -1.0f;
         int best_index = -1;
 
-        for (int i = 0; i < memory_count_items(); i++)
-        {
+        for (int i = 0; i < memory_count_items(); i++) {
+            const char *mem_text = memory_get_text(i);
+            if (strcmp(input, mem_text) == 0) continue;  // 🚫 skip perfect echo
+
             float *mem_vec = memory_get_vector(i);
             normalize_vector(mem_vec, EMBEDDING_SIZE);
             float score = cosine_similarity(input_vec, mem_vec, EMBEDDING_SIZE);
 
-            if (score > best_score)
-            {
+            if (score > best_score) {
                 best_score = score;
                 best_index = i;
             }
         }
 
-        printf("\n[Score: %.4f]\n", best_score);
-        const char *response = "I'm not sure what to say yet.";
+        const char *response = NULL;
 
-        if (best_index >= 0)
-        {
-            if (best_score > 0.96f)
-            {
-                response = memory_get_text(best_index);
-                last_index = best_index;
-            }
-            else if (best_score > 0.75f)
-            {
-                response = memory_get_text(best_index);
-                last_index = best_index;
-            }
-            else
-            {
-                const char *unknown_responses[] = {
-                    "That’s above my clearance.",
-                    "I’m logging that for review.",
-                    "Say more.",
-                    "Hmmm. That’s different.",
-                    "Not sure yet, but I’m learning."
-                };
-                response = unknown_responses[rand() % 5];
-                last_index = -1; // Reset since it's not a memory line
-            }
+        if (best_index == -1 || best_score < 0.50f) {
+            const char *fallbacks[] = {
+                "I'm still learning.",
+                "Try rephrasing that.",
+                "Can't match that yet.",
+                "Tell me more.",
+                "Not sure how to respond to that."
+            };
+            response = fallbacks[rand() % 5];
+        } else if (best_score > 0.96f && best_index != last_response_index) {
+            response = memory_get_text(best_index);
+            last_response_index = best_index;
+        } else if (best_score > 0.75f) {
+            const char *ack[] = {
+                "Related thought:",
+                "This comes to mind:",
+                "Closest match I found:"
+            };
+            printf("Morpheus: %s %s\n", ack[rand() % 3], memory_get_text(best_index));
+            remember(input);
+            continue;
+        } else {
+            const char *soft_fallbacks[] = {
+                "Interesting.",
+                "Noted.",
+                "Hmm.",
+                "Logging that.",
+                "Understood."
+            };
+            response = soft_fallbacks[rand() % 5];
         }
 
-        remember(response); // Store response
+        // === Final Output ===
+        remember(input);
+        remember(response);
         printf("Morpheus: %s\n", response);
     }
 

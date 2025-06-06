@@ -1,692 +1,692 @@
-δ be the solution returned from the L2 adversary on input
-image x, so that x + δ is an adversarial example. We compute
-g = ∇f (x + δ) (the gradient of the objective function,
-evaluated at the adversarial instance). We then select the pixel
-i = arg mini gi · δi and ﬁx i, i.e., remove i from the allowed
-set. 11 The intuition is that gi ·δi tells us how much reduction to
-f (·) we obtain from the ith pixel of the image, when moving
-from x to x + δ: gi tells us how much reduction in f we
-obtain, per unit change to the ith pixel, and we multiply this
-by how much the ith pixel has changed. This process repeats
-until the L2 adversary fails to ﬁnd an adversarial example.
-There is one ﬁnal detail required to achieve strong results:
-choosing a constant c to use for the L2 adversary. To do this,
-we initially set c to a very low value (e.g., 10−4). We then
-run our L2 adversary at this c-value. If it fails, we double c
-and try again, until it is successful. We abort the search if c
-exceeds a ﬁxed threshold (e.g., 1010).
-JSMA grows a set — initially empty — of pixels that are
-allowed to be changed and sets the pixels to maximize the total
-loss. In contrast, our attack shrinks the set of pixels — initially
-containing every pixel — that are allowed to be changed.
-Our algorithm is signiﬁcantly more effective than JSMA
-(see Section VII for an evaluation). It is also efﬁcient: we
-introduce optimizations that make it about as fast as our L2
-attack with a single starting point on MNIST and CIFAR; it is
-substantially slower on ImageNet. Instead of starting gradient
-descent in each iteration from the initial image, we start the
-gradient descent from the solution found on the previous
-iteration (“warm-start”). This dramatically reduces the number
-of rounds of gradient descent needed during each iteration, as
-the solution with k pixels held constant is often very similar
-to the solution with k + 1 pixels held constant.
-Figure 4 shows the L0 attack applied to one digit of each
-source class, targeting each target class, on the MNIST dataset.
-The attacks are visually noticeable, implying the L0 attack is
-more difﬁcult than L2. Perhaps the worst case is that of a 7
-being made to classify as a 6; interestingly, this attack for L2
-is one of the only visually distinguishable attacks.
-A comparable ﬁgure (Figure 11) for CIFAR is in the
-appendix.
-C. Our L∞ Attack
-The L∞ distance metric is not fully differentiable and
-standard gradient descent does not perform well for it. We
-experimented with naively optimizing
-minimize c · f (x + δ) + ‖δ‖∞
-However, we found that gradient descent produces very poor
-results: the ‖δ‖∞ term only penalizes the largest (in absolute
-value) entry in δ and has no impact on any of the other. As
-such, gradient descent very quickly becomes stuck oscillating
-between two suboptimal solutions. Consider a case where δi =
-0.5 and δj = 0.5 − . The L∞ norm will only penalize δi,
-11 Selecting the index i that minimizes δi is simpler, but it yields results
-with 1.5× higher L0 distortion.
-Target Classiﬁcation (L∞)
-0 1 2 3 4 5 6 7 8 9
-Source Classiﬁcation
-9 8 7 6 5 4 3 2 1 0
-Fig. 5. Our L∞ adversary applied to the MNIST dataset performing a targeted
-attack for every source/target pair. Each digit is the ﬁrst image in the dataset
-with that label.
-not δj , and ∂
-∂δj ‖δ‖∞ will be zero at this point. Thus, the
-gradient imposes no penalty for increasing δj , even though it
-is already large. On the next iteration we might move to a
-position where δj is slightly larger than δi, say δi = 0.5 − ′
-and δj = 0.5 + ′′, a mirror image of where we started. In
-other words, gradient descent may oscillate back and forth
-across the line δi = δj = 0.5, making it nearly impossible to
-make progress.
-We resolve this issue using an iterative attack. We replace
-the L2 term in the objective function with a penalty for any
-terms that exceed τ (initially 1, decreasing in each iteration).
-This prevents oscillation, as this loss term penalizes all large
-values simultaneously. Speciﬁcally, in each iteration we solve
-minimize c · f (x + δ) + · ∑
-i
-[(δi − τ )+]
-After each iteration, if δi < τ for all i, we reduce τ by a factor
-of 0.9 and repeat; otherwise, we terminate the search.
-Again we must choose a good constant c to use for the
-L∞ adversary. We take the same approach as we do for the
-L0 attack: initially set c to a very low value and run the L∞
-adversary at this c-value. If it fails, we double c and try again,
-until it is successful. We abort the search if c exceeds a ﬁxed
-threshold.
-Using “warm-start” for gradient descent in each iteration,
-this algorithm is about as fast as our L2 algorithm (with a
-single starting point).
-Figure 5 shows the L∞ attack applied to one digit of each
-source class, targeting each target class, on the MNSIT dataset.
-While most differences are not visually noticeable, a few are.
-Again, the worst case is that of a 7 being made to classify as
-a 6.
-48
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-Untargeted Average Case Least Likely
-mean prob mean prob mean prob
-Our L0 48 100% 410 100% 5200 100%
-JSMA-Z - 0% - 0% - 0%
-JSMA-F - 0% - 0% - 0%
-Our L2 0.32 100% 0.96 100% 2.22 100%
-Deepfool 0.91 100% - - - -
-Our L∞ 0.004 100% 0.006 100% 0.01 100%
-FGS 0.004 100% 0.064 2% - 0%
-IGS 0.004 100% 0.01 99% 0.03 98%
-TABLE V
-C OMPARISON OF THE THREE VARIANTS OF TARGETED ATTACK TO
-PREVIOUS WORK FOR THE I NCEPTION V 3 MODEL ON I MAGE N ET. W HEN
-SUCCESS RATE IS NOT 100%, THE MEAN IS ONLY OVER SUCCESSES .
-A comparable ﬁgure (Figure 13) for CIFAR is in the ap-
-pendix. No attack is visually distinguishable from the baseline
-image.
-VII. ATTACK E VALUATION
-We compare our targeted attacks to the best results pre-
-viously reported in prior publications, for each of the three
-distance metrics.
-We re-implement Deepfool, fast gradient sign, and iterative
-gradient sign. For fast gradient sign, we search over  to ﬁnd
-the smallest distance that generates an adversarial example;
-failures is returned if no  produces the target class. Our
-iterative gradient sign method is similar: we search over 
-(ﬁxing α = 1
-256 ) and return the smallest successful.
-For JSMA we use the implementation in CleverHans [35]
-with only slight modiﬁcation (we improve performance by
-50× with no impact on accuracy).
-JSMA is unable to run on ImageNet due to an inherent
-signiﬁcant computational cost: recall that JSMA performs
-search for a pair of pixels p, q that can be changed together
-that make the target class more likely and other classes less
-likely. ImageNet represents images as 299 × 299 × 3 vectors,
-so searching over all pairs of pixels would require 236 work
-on each step of the calculation. If we remove the search over
-pairs of pixels, the success of JSMA falls off dramatically. We
-therefore report it as failing always on ImageNet.
-We report success if the attack produced an adversarial
-example with the correct target label, no matter how much
-change was required. Failure indicates the case where the
-attack was entirely unable to succeed.
-We evaluate on the ﬁrst 1, 000 images in the test set on
-CIFAR and MNSIT. On ImageNet, we report on 1, 000 images
-that were initially classiﬁed correctly by Inception v3 12 . On
-ImageNet we approximate the best-case and worst-case results
-by choosing 100 target classes (10%) at random.
-The results are found in Table IV for MNIST and CIFAR,
-and Table V for ImageNet. 13
-12 Otherwise the best-case attack results would appear to succeed extremely
-often artiﬁcially low due to the relatively low top-1 accuracy
-13 The complete code to reproduce these tables and ﬁgures is available
-online at http://nicholas.carlini.com/code/nn robust attacks.
-Target Classiﬁcation
-0 1 2 3 4 5 6 7 8 9
-Distance Metric
-L∞ L2 L0
-Fig. 6. Targeted attacks for each of the 10 MNIST digits where the starting
-image is totally black for each of the three distance metrics.
-Target Classiﬁcation
-0 1 2 3 4 5 6 7 8 9
-Distance Metric
-L∞ L2 L0
-Fig. 7. Targeted attacks for each of the 10 MNIST digits where the starting
-image is totally white for each of the three distance metrics.
-For each distance metric, across all three datasets, our
-attacks ﬁnd closer adversarial examples than the previous
-state-of-the-art attacks, and our attacks never fail to ﬁnd an
-adversarial example. Our L0 and L2 attacks ﬁnd adversarial
-examples with 2× to 10× lower distortion than the best pre-
-viously published attacks, and succeed with 100% probability.
-Our L∞ attacks are comparable in quality to prior work, but
-their success rate is higher. Our L∞ attacks on ImageNet are so
-successful that we can change the classiﬁcation of an image
-to any desired label by only ﬂipping the lowest bit of each
-pixel, a change that would be impossible to detect visually.
-As the learning task becomes increasingly more difﬁcult, the
-previous attacks produce worse results, due to the complexity
-of the model. In contrast, our attacks perform even better as
-the task complexity increases. We have found JSMA is unable
-to ﬁnd targeted L0 adversarial examples on ImageNet, whereas
-ours is able to with 100% success.
-It is important to realize that the results between models
-are not directly comparable. For example, even though a L0
-adversary must change 10 times as many pixels to switch an
-ImageNet classiﬁcation compared to a MNIST classiﬁcation,
-ImageNet has 114× as many pixels and so the fraction of
-pixels that must change is signiﬁcantly smaller.
-Generating synthetic digits. With our targeted adversary,
-we can start from any image we want and ﬁnd adversarial
-examples of each given target. Using this, in Figure 6 we
-show the minimum perturbation to an entirely-black image
-required to make it classify as each digit, for each of the
-distance metrics.
-49
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-Best Case Average Case Worst Case
-MNIST CIFAR MNIST CIFAR MNIST CIFAR
-mean prob mean prob mean prob mean prob mean prob mean prob
-Our L0 8.5 100% 5.9 100% 16 100% 13 100% 33 100% 24 100%
-JSMA-Z 20 100% 20 100% 56 100% 58 100% 180 98% 150 100%
-JSMA-F 17 100% 25 100% 45 100% 110 100% 100 100% 240 100%
-Our L2 1.36 100% 0.17 100% 1.76 100% 0.33 100% 2.60 100% 0.51 100%
-Deepfool 2.11 100% 0.85 100% − - − - − - − -
-Our L∞ 0.13 100% 0.0092 100% 0.16 100% 0.013 100% 0.23 100% 0.019 100%
-Fast Gradient Sign 0.22 100% 0.015 99% 0.26 42% 0.029 51% − 0% 0.34 1%
-Iterative Gradient Sign 0.14 100% 0.0078 100% 0.19 100% 0.014 100% 0.26 100% 0.023 100%
-TABLE IV
-C OMPARISON OF THE THREE VARIANTS OF TARGETED ATTACK TO PREVIOUS WORK FOR OUR MNIST AND CIFAR MODELS . W HEN SUCCESS RATE IS
-NOT 100%, THE MEAN IS ONLY OVER SUCCESSES .
-This experiment was performed for the L0 task previously
-[38], however when mounting their attack, “for classes 0, 2,
-3 and 5 one can clearly recognize the target digit.” With our
-more powerful attacks, none of the digits are recognizable.
-Figure 7 performs the same analysis starting from an all-white
-image.
-Notice that the all-black image requires no change to
-become a digit 1 because it is initially classiﬁed as a 1, and
-the all-white image requires no change to become a 8 because
-the initial image is already an 8.
-Runtime Analysis. We believe there are two reasons why one
-may consider the runtime performance of adversarial example
-generation algorithms important: ﬁrst, to understand if the
-performance would be prohibitive for an adversary to actually
-mount the attacks, and second, to be used as an inner loop in
-adversarial re-training [11].
-Comparing the exact runtime of attacks can be misleading.
-For example, we have parallelized the implementation of
-our L2 adversary allowing it to run hundreds of attacks
-simultaneously on a GPU, increasing performance from 10×
-to 100×. However, we did not parallelize our L0 or L∞
-attacks. Similarly, our implementation of fast gradient sign
-is parallelized, but JSMA is not. We therefore refrain from
-giving exact performance numbers because we believe an
-unfair comparison is worse than no comparison.
-All of our attacks, and all previous attacks, are plenty
-efﬁcient to be used by an adversary. No attack takes longer
-than a few minutes to run on any given instance.
-When compared to L0, our attacks are 2 × −10× slower
-than our optimized JSMA algorithm (and signiﬁcantly faster
-than the un-optimized version). Our attacks are typically 10 ×
-−100× slower than previous attacks for L2 and L∞, with
-exception of iterative gradient sign which we are 10× slower.
-VIII. E VALUATING D EFENSIVE D ISTILLATION
-Distillation was initially proposed as an approach to reduce
-a large model (the teacher) down to a smaller distilled model
-[19]. At a high level, distillation works by ﬁrst training the
-teacher model on the training set in a standard manner. Then,
-we use the teacher to label each instance in the training set with
-soft labels (the output vector from the teacher network). For
-example, while the hard label for an image of a hand-written
-digit 7 will say it is classiﬁed as a seven, the soft labels might
-say it has a 80% chance of being a seven and a 20% chance
-of being a one. Then, we train the distilled model on the soft
-labels from the teacher, rather than on the hard labels from
-the training set. Distillation can potentially increase accuracy
-on the test set as well as the rate at which the smaller model
-learns to predict the hard labels [19], [30].
-Defensive distillation uses distillation in order to increase
-the robustness of a neural network, but with two signiﬁcant
-changes. First, both the teacher model and the distilled model
-are identical in size — defensive distillation does not result
-in smaller models. Second, and more importantly, defensive
-distillation uses a large distillation temperature (described
-below) to force the distilled model to become more conﬁdent
-in its predictions.
-Recall that, the softmax function is the last layer of a neural
-network. Defensive distillation modiﬁes the softmax function
-to also include a temperature constant T :
-softmax(x, T )i = exi/T
-∑
-j exj /T
-It is easy to see that softmax(x, T ) = softmax(x/T, 1). Intu-
-itively, increasing the temperature causes a “softer” maximum,
-and decreasing it causes a “harder” maximum. As the limit
-of the temperature goes to 0, softmax approaches max; as
-the limit goes to inﬁnity, softmax(x) approaches a uniform
-distribution.
-Defensive distillation proceeds in four steps:
-1) Train a network, the teacher network, by setting the
-temperature of the softmax to T during the training
-phase.
-2) Compute soft labels by apply the teacher network to
-each instance in the training set, again evaluating the
-softmax at temperature T .
-3) Train the distilled network (a network with the same
-shape as the teacher network) on the soft labels, using
-softmax at temperature T .
-50
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-4) Finally, when running the distilled network at test time
-(to classify new inputs), use temperature 1.
-A. Fragility of existing attacks
-We brieﬂy investigate the reason that existing attacks fail
-on distilled networks, and ﬁnd that existing attacks are very
-fragile and can easily fail to ﬁnd adversarial examples even
-when they exist.
-L-BFGS and Deepfool fail due to the fact that the gradient
-of F (·) is zero almost always, which prohibits the use of the
-standard objective function.
-When we train a distilled network at temperature T and
-then test it at temperature 1, we effectively cause the inputs to
-the softmax to become larger by a factor of T . By minimizing
-the cross entropy during training, the output of the softmax
-is forced to be close to 1.0 for the correct class and 0.0 for
-all others. Since Z(·) is divided by T , the distilled network
-will learn to make the Z(·) values T times larger than they
-otherwise would be. (Positive values are forced to become
-about T times larger; negative values are multiplied by a
-factor of about T and thus become even more negative.)
-Experimentally, we veriﬁed this fact: the mean value of the
-L1 norm of Z(·) (the logits) on the undistilled network is
-5.8 with standard deviation 6.4; on the distilled network (with
-T = 100), the mean is 482 with standard deviation 457.
-Because the values of Z(·) are 100 times larger, when
-we test at temperature 1, the output of F becomes  in all
-components except for the output class which has conﬁdence
-1−9 for some very small  (for tasks with 10 classes). In fact,
-in most cases,  is so small that the 32-bit ﬂoating-point value
-is rounded to 0. For similar reasons, the gradient is so small
-that it becomes 0 when expressed as a 32-bit ﬂoating-point
-value.
-This causes the L-BFGS minimization procedure to fail to
-make progress and terminate. If instead we run L-BFGS with
-our stable objective function identiﬁed earlier, rather than the
-objective function lossF,l(·) suggested by Szegedy et al. [46],
-L-BFGS does not fail. An alternate approach to ﬁxing the
-attack would be to set
-F ′(x) = softmax(Z(x)/T )
-where T is the distillation temperature chosen. Then mini-
-mizing lossF ′,l(·) will not fail, as now the gradients do not
-vanish due to ﬂoating-point arithmetic rounding. This clearly
-demonstrates the fragility of using the loss function as the
-objective to minimize.
-JSMA-F (whereby we mean the attack uses the output of
-the ﬁnal layer F (·)) fails for the same reason that L-BFGS
-fails: the output of the Z(·) layer is very large and so softmax
-becomes essentially a hard maximum. This is the version of the
-attack that Papernot et al. use to attack defensive distillation
-in their paper [39].
-JSMA-Z (the attack that uses the logits) fails for a com-
-pletely different reason. Recall that in the Z(·) version of
-the attack, we use the input to the softmax for computing
-the gradient instead of the ﬁnal output of the network. This
-removes any potential issues with the gradient vanishing,
-however this introduces new issues. This version of the attack
-is introduced by Papernot et al. [38] but it is not used to attack
-distillation; we provide here an analysis of why it fails.
-Since this attack uses the Z values, it is important to realize
-the differences in relative impact. If the smallest input to
-the softmax layer is −100, then, after the softmax layer, the
-corresponding output becomes practically zero. If this input
-changes from −100 to −90, the output will still be practically
-zero. However, if the largest input to the softmax layer is 10,
-and it changes to 0, this will have a massive impact on the
-softmax output.
-Relating this to parameters used in their attack, α and β
-represent the size of the change at the input to the softmax
-layer. It is perhaps surprising that JSMA-Z works on un-
-distilled networks, as it treats all changes as being of equal
-importance, regardless of how much they change the softmax
-output. If changing a single pixel would increase the target
-class by 10, but also increase the least likely class by 15, the
-attack will not increase that pixel.
-Recall that distillation at temperature T causes the value of
-the logits to be T times larger. In effect, this magniﬁes the sub-
-optimality noted above as logits that are extremely unlikely but
-have slight variation can cause the attack to refuse to make
-any changes.
-Fast Gradient Sign fails at ﬁrst for the same reason L-
-BFGS fails: the gradients are almost always zero. However,
-something interesting happens if we attempt the same division
-trick and divide the logits by T before feeding them to the
-softmax function: distillation still remains effective [36]. We
-are unable to explain this phenomenon.
-B. Applying Our Attacks
-When we apply our attacks to defensively distilled net-
-works, we ﬁnd distillation provides only marginal value. We
-re-implement defensive distillation on MNIST and CIFAR-10
-as described [39] using the same model we used for our eval-
-uation above. We train our distilled model with temperature
-T = 100, the value found to be most effective [39].
-Table VI shows our attacks when applied to distillation. All
-of the previous attacks fail to ﬁnd adversarial examples. In
-contrast, our attack succeeds with 100% success probability
-for each of the three distance metrics.
-When compared to Table IV, distillation has added almost
-no value: our L0 and L2 attacks perform slightly worse, and
-our L∞ attack performs approximately equally. All of our
-attacks succeed with 100% success.
-C. Effect of Temperature
-In the original work, increasing the temperature was found
-to consistently reduce attack success rate. On MNIST, this
-goes from a 91% success rate at T = 1 to a 24% success rate
-for T = 5 and ﬁnally 0.5% success at T = 100.
-51
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-Best Case Average Case Worst Case
-MNIST CIFAR MNIST CIFAR MNIST CIFAR
-mean prob mean prob mean prob mean prob mean prob mean prob
-Our L0 10 100% 7.4 100% 19 100% 15 100% 36 100% 29 100%
-Our L2 1.7 100% 0.36 100% 2.2 100% 0.60 100% 2.9 100% 0.92 100%
-Our L∞ 0.14 100% 0.002 100% 0.18 100% 0.023 100% 0.25 100% 0.038 100%
-TABLE VI
-C OMPARISON OF OUR ATTACKS WHEN APPLIED TO DEFENSIVELY DISTILLED NETWORKS . C OMPARE TO TABLE IV FOR UNDISTILLED NETWORKS .
-●
-●
-●
-●
-● ● ● ● ●
-●
-● ● ●
-●
-●
-●
-● ●
-●
-● ●
-0 20 40 60 80 100
-0.0 0.5 1.0 1.5 2.0 2.5 3.0
-Distillation Temperature
-Mean Adversarial Distance
-Fig. 8. Mean distance to targeted (with random target) adversarial examples
-for different distillation temperatures on MNIST. Temperature is uncorrelated
-with mean adversarial example distance.
-We re-implement this experiment with our improved attacks
-to understand how the choice of temperature impacts robust-
-ness. We train models with the temperature varied from t = 1
-to t = 100.
-When we re-run our implementation of JSMA, we observe
-the same effect: attack success rapidly decreases. However,
-with our improved L2 attack, we see no effect of temperature
-on the mean distance to adversarial examples: the correlation
-coefﬁcient is ρ = −0.05. This clearly demonstrates the fact
-that increasing the distillation temperature does not increase
-the robustness of the neural network, it only causes existing
-attacks to fail more often.
-D. Transferability
-Recent work has shown that an adversarial example for one
-model will often transfer to be an adversarial on a different
-model, even if they are trained on different sets of training data
-[46], [11], and even if they use entirely different algorithms
-(i.e., adversarial examples on neural networks transfer to
-random forests [37]).
-0 10 20 30 40
-0.0 0.2 0.4 0.6 0.8 1.0
-Value of k
-Probability Adversarial Example Transfers, Baseline
-Untargetted
-Targetted
-Fig. 9. Probability that adversarial examples transfer from one model to
-another, for both targeted (the adversarial class remains the same) and
-untargeted (the image is not the correct class).
-Therefore, any defense that is able to provide robust-
-ness against adversarial examples must somehow break this
-transferability property; otherwise, we could run our attack
-algorithm on an easy-to-attack model, and then transfer those
-adversarial examples to the hard-to-attack model.
-Even though defensive distillation is not robust to our
-stronger attacks, we demonstrate a second break of distillation
-by transferring attacks from a standard model to a defensively
-distilled model.
-We accomplish this by ﬁnding high-conﬁdence adversar-
-ial examples, which we deﬁne as adversarial examples that
-are strongly misclassiﬁed by the original model. Instead of
-looking for an adversarial example that just barely changes
-the classiﬁcation from the source to the target, we want one
-where the target is much more likely than any other label.
-Recall the loss function deﬁned earlier for L2 attacks:
-f (x′) = max(max{Z(x′)i : i  = t} − Z(x′)t, −κ).
-The purpose of the parameter κ is to control the strength of
-adversarial examples: the larger κ, the stronger the classiﬁ-
-52
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-0 10 20 30 40
-0.0 0.2 0.4 0.6 0.8
-Value of k
-Probability Adversarial Example Transfers, Distilled
-Untargetted
-Targetted
-Fig. 10. Probability that adversarial examples transfer from the baseline model
-to a model trained with defensive distillation at temperature 100.
-cation of the adversarial example. This allows us to generate
-high-conﬁdence adversarial examples by increasing κ.
-We ﬁrst investigate if our hypothesis is true that the stronger
-the classiﬁcation on the ﬁrst model, the more likely it will
-transfer. We do this by varying κ from 0 to 40.
-Our baseline experiment uses two models trained on MNIST
-as described in Section IV, with each model trained on half of
-the training data. We ﬁnd that the transferability success rate
-increases linearly from κ = 0 to κ = 20 and then plateaus
-at near-100% success for κ ≈ 20, so clearly increasing κ
-increases the probability of a successful transferable attack.
-We then run this same experiment only instead we train
-the second model with defensive distillation, and ﬁnd that
-adversarial examples do transfer. This gives us another at-
-tack technique for ﬁnding adversarial examples on distilled
-networks.
-However, interestingly, the transferability success rate be-
-tween the unsecured model and the distilled model only
-reaches 100% success at κ = 40, in comparison to the previous
-approach that only required κ = 20.
-We believe that this approach can be used in general to
-evaluate the robustness of defenses, even if the defense is able
-to completely block ﬂow of gradients to cause our gradient-
-descent based approaches from succeeding.
-IX. C ONCLUSION
-The existence of adversarial examples limits the areas in
-which deep learning can be applied. It is an open problem
-to construct defenses that are robust to adversarial examples.
-In an attempt to solve this problem, defensive distillation
-was proposed as a general-purpose procedure to increase the
-robustness of an arbitrary neural network.
-In this paper, we propose powerful attacks that defeat
-defensive distillation, demonstrating that our attacks more
-generally can be used to evaluate the efﬁcacy of potential
-defenses. By systematically evaluating many possible attack
-approaches, we settle on one that can consistently ﬁnd better
-adversarial examples than all existing approaches. We use this
-evaluation as the basis of our three L0, L2, and L∞ attacks.
-We encourage those who create defenses to perform the two
-evaluation approaches we use in this paper:
-• Use a powerful attack (such as the ones proposed in this
-paper) to evaluate the robustness of the secured model
-directly. Since a defense that prevents our L2 attack will
-prevent our other attacks, defenders should make sure to
-establish robustness against the L2 distance metric.
-• Demonstrate that transferability fails by constructing
-high-conﬁdence adversarial examples on a unsecured
-model and showing they fail to transfer to the secured
-model.
-A CKNOWLEDGEMENTS
-We would like to thank Nicolas Papernot discussing our
-defensive distillation implementation, and the anonymous re-
-viewers for their helpful feedback. This work was supported
-by Intel through the ISTC for Secure Computing, Qualcomm,
-Cisco, the AFOSR under MURI award FA9550-12-1-0040,
-and the Hewlett Foundation through the Center for Long-Term
-Cybersecurity.
-R EFERENCES
-[1] A NDOR , D., A LBERTI , C., W EISS , D., S EVERYN , A., P RESTA , A.,
-G ANCHEV, K., P ETROV, S., AND C OLLINS , M. Globally normalized
-transition-based neural networks. arXiv preprint arXiv:1603.06042
-(2016).
-[2] B ASTANI , O., I OANNOU , Y., L AMPROPOULOS , L., V YTINIOTIS , D.,
-N ORI , A., AND C RIMINISI , A. Measuring neural net robustness with
-constraints. arXiv preprint arXiv:1605.07262 (2016).
-[3] B OJARSKI , M., D EL T ESTA , D., D WORAKOWSKI , D., F IRNER , B.,
-F LEPP, B., G OYAL , P., JACKEL , L. D., M ONFORT, M., M ULLER , U.,
-Z HANG , J., ET AL . End to end learning for self-driving cars. arXiv
-preprint arXiv:1604.07316 (2016).
-[4] B OURZAC , K. Bringing big neural networks to
-self-driving cars, smartphones, and drones. http:
-//spectrum.ieee.org/computing/embedded-systems/
-bringing-big-neural-networks-to-selfdriving-cars-smartphones-and-drones,
-2016.
-[5] C ARLINI , N., M ISHRA , P., VAIDYA , T., Z HANG , Y., S HERR , M.,
-S HIELDS , C., WAGNER , D., AND Z HOU , W. Hidden voice commands.
-In 25th USENIX Security Symposium (USENIX Security 16), Austin, TX
-(2016).
-[6] C HANDOLA , V., B ANERJEE , A., AND K UMAR , V. Anomaly detection:
-A survey. ACM computing surveys (CSUR) 41, 3 (2009), 15.
-[7] C LEVERT, D.-A., U NTERTHINER , T., AND H OCHREITER , S. Fast and
-accurate deep network learning by exponential linear units (ELUs).
-arXiv preprint arXiv:1511.07289 (2015).
-[8] D AHL , G. E., S TOKES , J. W., D ENG , L., AND Y U , D. Large-scale
-malware classiﬁcation using random projections and neural networks. In
-2013 IEEE International Conference on Acoustics, Speech and Signal
-Processing (2013), IEEE, pp. 3422–3426.
-[9] D ENG , J., D ONG , W., S OCHER , R., L I , L.-J., L I , K., AND F EI -F EI ,
-L. Imagenet: A large-scale hierarchical image database. In Computer
-Vision and Pattern Recognition, 2009. CVPR 2009. IEEE Conference
-on (2009), IEEE, pp. 248–255.
-53
-Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
-[10] G IUSTI , A., G UZZI , J., C IRES¸ AN , D. C., H E , F.-L., R ODR ´IGUEZ ,
-J. P., F ONTANA , F., FAESSLER , M., F ORSTER , C., S CHMIDHUBER , J.,
-D I C ARO , G., ET AL . A machine learning approach to visual perception
-of forest trails for mobile robots. IEEE Robotics and Automation Letters
-1, 2 (2016), 661–667.
-[11] G OODFELLOW, I. J., S HLENS , J., AND S ZEGEDY, C. Explaining
-and harnessing adversarial examples. arXiv preprint arXiv:1412.6572
-(2014).
-[12] G RAHAM , B. Fractional max-pooling. arXiv preprint arXiv:1412.6071
-(2014).
-[13] G RAVES , A., M OHAMED , A.- R ., AND H INTON , G. Speech recognition
-with deep recurrent neural networks. In 2013 IEEE international
-conference on acoustics, speech and signal processing (2013), IEEE,
-pp. 6645–6649.
-[14] G ROSSE , K., PAPERNOT, N., M ANOHARAN , P., B ACKES , M., AND
-M C D ANIEL , P. Adversarial perturbations against deep neural networks
-for malware classiﬁcation. arXiv preprint arXiv:1606.04435 (2016).
-[15] G U , S., AND R IGAZIO , L. Towards deep neural network architectures
-robust to adversarial examples. arXiv preprint arXiv:1412.5068 (2014).
-[16] H E , K., Z HANG , X., R EN , S., AND S UN , J. Deep residual learning for
-image recognition. In Proceedings of the IEEE Conference on Computer
-Vision and Pattern Recognition (2016), pp. 770–778.
-[17] H INTON , G., D ENG , L., Y U , D., D AHL , G., RAHMAN M OHAMED , A.,
-JAITLY, N., S ENIOR , A., VANHOUCKE , V., N GUYEN , P., S AINATH , T.,
-AND K INGSBURY, B. Deep neural networks for acoustic modeling in
-speech recognition. Signal Processing Magazine (2012).
-[18] H INTON , G., D ENG , L., Y U , D., D AHL , G. E., M OHAMED , A.- R .,
-JAITLY, N., S ENIOR , A., VANHOUCKE , V., N GUYEN , P., S AINATH ,
-T. N., ET AL . Deep neural networks for acoustic modeling in speech
-recognition: The shared views of four research groups. IEEE Signal
-Processing Magazine 29, 6 (2012), 82–97.
-[19] H INTON , G., V INYALS , O., AND D EAN , J. Distilling the knowledge in
-a neural network. arXiv preprint arXiv:1503.02531 (2015).
-[20] H UANG , R., X U , B., S CHUURMANS , D., AND S ZEPESV ´ARI , C. Learn-
-ing with a strong adversary. CoRR, abs/1511.03034 (2015).
-[21] H UANG , X., K WIATKOWSKA , M., WANG , S., AND W U , M. Safety
-veriﬁcation of deep neural networks. arXiv preprint arXiv:1610.06940
-(2016).
-[22] JANGLOV ´A , D. Neural networks in mobile robot motion. Cutting Edge
-Robotics 1, 1 (2005), 243.
-[23] K INGMA , D., AND B A , J. Adam: A method for stochastic optimization.
-arXiv preprint arXiv:1412.6980 (2014).
-[24] K RIZHEVSKY, A., AND H INTON , G. Learning multiple layers of
-features from tiny images.
-[25] K RIZHEVSKY, A., S UTSKEVER , I., AND H INTON , G. E. ImageNet
-classiﬁcation with deep convolutional neural networks. In Advances
-in neural information processing systems (2012), pp. 1097–1105.
-[26] K URAKIN , A., G OODFELLOW, I., AND B ENGIO , S. Adversarial exam-
-ples in the physical world. arXiv preprint arXiv:1607.02533 (2016).
-[27] L E C UN , Y., B OTTOU , L., B ENGIO , Y., AND H AFFNER , P. Gradient-
-based learning applied to document recognition. Proceedings of the
-IEEE 86, 11 (1998), 2278–2324.
-[28] L E C UN , Y., C ORTES , C., AND B URGES , C. J. The mnist database of
-handwritten digits, 1998.
-[29] M AAS , A. L., H ANNUN , A. Y., AND N G , A. Y. Rectiﬁer nonlinearities
-improve neural network acoustic models. In Proc. ICML (2013), vol. 30.
-[30] M ELICHER , W., U R , B., S EGRETI , S. M., K OMANDURI , S., B AUER ,
-L., C HRISTIN , N., AND C RANOR , L. F. Fast, lean and accurate:
-Modeling password guessability using neural networks. In Proceedings
-of USENIX Security (2016).
-[31] M ISHKIN , D., AND M ATAS , J. All you need is a good init. arXiv
-preprint arXiv:1511.06422 (2015).
-[32] M NIH , V., K AVUKCUOGLU , K., S ILVER , D., G RAVES , A.,
-A NTONOGLOU , I., W IERSTRA , D., AND R IEDMILLER , M. Playing
-Atari with deep reinforcement learning. arXiv preprint arXiv:1312.5602
-(2013).
-[33] M NIH , V., K AVUKCUOGLU , K., S ILVER , D., R USU , A. A., V ENESS ,
-J., B ELLEMARE , M. G., G RAVES , A., R IEDMILLER , M., F IDJELAND ,
-A. K., O STROVSKI , G., ET AL . Human-level control through deep
-reinforcement learning. Nature 518, 7540 (2015), 529–533.
-[34] M OOSAVI -D EZFOOLI , S.-M., FAWZI , A., AND F ROSSARD , P. Deep-
-fool: a simple and accurate method to fool deep neural networks. arXiv
-preprint arXiv:1511.04599 (2015).
-[35] PAPERNOT, N., G OODFELLOW, I., S HEATSLEY, R., F EINMAN , R., AND
-M C D ANIEL , P. cleverhans v1.0.0: an adversarial machine learning
-library. arXiv preprint arXiv:1610.00768 (2016).
-[36] PAPERNOT, N., AND M C D ANIEL , P. On the effectiveness of defensive
-distillation. arXiv preprint arXiv:1607.05113 (2016).
-[37] PAPERNOT, N., M C D ANIEL , P., AND G OODFELLOW, I. Transferabil-
-ity in machine learning: from phenomena to black-box attacks using
-adversarial samples. arXiv preprint arXiv:1605.07277 (2016).
-[38] PAPERNOT, N., M C D ANIEL , P., J HA , S., F REDRIKSON , M., C ELIK ,
-Z. B., AND S WAMI , A. The limitations of deep learning in adversarial
-settings. In 2016 IEEE European Symposium on Security and Privacy
-(EuroS&P) (2016), IEEE, pp. 372–387.
-[39] PAPERNOT, N., M C D ANIEL , P., W U , X., J HA , S., AND S WAMI , A.
-Distillation as a defense to adversarial perturbations against deep neural
-networks. IEEE Symposium on Security and Privacy (2016).
-[40] PASCANU , R., S TOKES , J. W., S ANOSSIAN , H., M ARINESCU , M.,
-AND T HOMAS , A. Malware classiﬁcation with recurrent networks. In
-2015 IEEE International Conference on Acoustics, Speech and Signal
-Processing (ICASSP) (2015), IEEE, pp. 1916–1920.
-[41] R USSAKOVSKY, O., D ENG , J., S U , H., K RAUSE , J., S ATHEESH , S.,
-M A , S., H UANG , Z., K ARPATHY, A., K HOSLA , A., B ERNSTEIN , M.,
-B ERG , A. C., AND F EI -F EI , L. ImageNet Large Scale Visual Recogni-
-tion Challenge. International Journal of Computer Vision (IJCV) 115,
-3 (2015), 211–252.
-[42] S HAHAM , U., YAMADA , Y., AND N EGAHBAN , S. Understanding
-adversarial training: Increasing local stability of neural nets through
-robust optimization. arXiv preprint arXiv:1511.05432 (2015).
-[43] S ILVER , D., H UANG , A., M ADDISON , C. J., G UEZ , A., S IFRE , L.,
-VAN D EN D RIESSCHE , G., S CHRITTWIESER , J., A NTONOGLOU , I.,
-PANNEERSHELVAM , V., L ANCTOT, M., ET AL . Mastering the game
-of Go with deep neural networks and tree search. Nature 529, 7587
-(2016), 484–489.
-[44] S PRINGENBERG , J. T., D OSOVITSKIY, A., B ROX , T., AND R IED -
-MILLER , M. Striving for simplicity: The all convolutional net. arXiv
-preprint arXiv:1412.6806 (2014).
-[45] S ZEGEDY, C., VANHOUCKE , V., I OFFE , S., S HLENS , J., AND W OJNA ,
-Z. Rethinking the Inception architecture for computer vision. arXiv
-preprint arXiv:1512.00567 (2015).
-[46] S ZEGEDY, C., Z AREMBA , W., S UTSKEVER , I., B RUNA , J., E RHAN ,
-D., G OODFELLOW, I., AND F ERGUS , R. Intriguing properties of neural
-networks. ICLR (2013).
-[47] WARDE -FARLEY, D., AND G OODFELLOW, I. Adversarial perturbations
-of deep neural networks. Advanced Structured Prediction, T. Hazan, G.
-Papandreou, and D. Tarlow, Eds (2016).
-[48] Y UAN , Z., L U , Y., WANG , Z., AND X UE , Y. Droid-sec: Deep learning
-in android malware detection. In ACM SIGCOMM Computer Commu-
-nication Review (2014), vol. 44, ACM, pp. 371–3
+U||δ be the solution returned from the L2 adversary on input
+U||image x, so that x + δ is an adversarial example. We compute
+U||g = ∇f (x + δ) (the gradient of the objective function,
+U||evaluated at the adversarial instance). We then select the pixel
+U||i = arg mini gi · δi and ﬁx i, i.e., remove i from the allowed
+U||set. 11 The intuition is that gi ·δi tells us how much reduction to
+U||f (·) we obtain from the ith pixel of the image, when moving
+U||from x to x + δ: gi tells us how much reduction in f we
+U||obtain, per unit change to the ith pixel, and we multiply this
+U||by how much the ith pixel has changed. This process repeats
+U||until the L2 adversary fails to ﬁnd an adversarial example.
+U||There is one ﬁnal detail required to achieve strong results:
+U||choosing a constant c to use for the L2 adversary. To do this,
+U||we initially set c to a very low value (e.g., 10−4). We then
+U||run our L2 adversary at this c-value. If it fails, we double c
+U||and try again, until it is successful. We abort the search if c
+U||exceeds a ﬁxed threshold (e.g., 1010).
+U||JSMA grows a set — initially empty — of pixels that are
+U||allowed to be changed and sets the pixels to maximize the total
+U||loss. In contrast, our attack shrinks the set of pixels — initially
+U||containing every pixel — that are allowed to be changed.
+U||Our algorithm is signiﬁcantly more effective than JSMA
+U||(see Section VII for an evaluation). It is also efﬁcient: we
+U||introduce optimizations that make it about as fast as our L2
+U||attack with a single starting point on MNIST and CIFAR; it is
+U||substantially slower on ImageNet. Instead of starting gradient
+U||descent in each iteration from the initial image, we start the
+U||gradient descent from the solution found on the previous
+U||iteration (“warm-start”). This dramatically reduces the number
+U||of rounds of gradient descent needed during each iteration, as
+U||the solution with k pixels held constant is often very similar
+U||to the solution with k + 1 pixels held constant.
+U||Figure 4 shows the L0 attack applied to one digit of each
+U||source class, targeting each target class, on the MNIST dataset.
+U||The attacks are visually noticeable, implying the L0 attack is
+U||more difﬁcult than L2. Perhaps the worst case is that of a 7
+U||being made to classify as a 6; interestingly, this attack for L2
+U||is one of the only visually distinguishable attacks.
+U||A comparable ﬁgure (Figure 11) for CIFAR is in the
+U||appendix.
+U||C. Our L∞ Attack
+U||The L∞ distance metric is not fully differentiable and
+U||standard gradient descent does not perform well for it. We
+U||experimented with naively optimizing
+U||minimize c · f (x + δ) + ‖δ‖∞
+U||However, we found that gradient descent produces very poor
+U||results: the ‖δ‖∞ term only penalizes the largest (in absolute
+U||value) entry in δ and has no impact on any of the other. As
+U||such, gradient descent very quickly becomes stuck oscillating
+U||between two suboptimal solutions. Consider a case where δi =
+U||0.5 and δj = 0.5 − . The L∞ norm will only penalize δi,
+U||11 Selecting the index i that minimizes δi is simpler, but it yields results
+U||with 1.5× higher L0 distortion.
+U||Target Classiﬁcation (L∞)
+U||0 1 2 3 4 5 6 7 8 9
+U||Source Classiﬁcation
+U||9 8 7 6 5 4 3 2 1 0
+U||Fig. 5. Our L∞ adversary applied to the MNIST dataset performing a targeted
+U||attack for every source/target pair. Each digit is the ﬁrst image in the dataset
+U||with that label.
+U||not δj , and ∂
+U||∂δj ‖δ‖∞ will be zero at this point. Thus, the
+U||gradient imposes no penalty for increasing δj , even though it
+U||is already large. On the next iteration we might move to a
+U||position where δj is slightly larger than δi, say δi = 0.5 − ′
+U||and δj = 0.5 + ′′, a mirror image of where we started. In
+U||other words, gradient descent may oscillate back and forth
+U||across the line δi = δj = 0.5, making it nearly impossible to
+U||make progress.
+U||We resolve this issue using an iterative attack. We replace
+U||the L2 term in the objective function with a penalty for any
+U||terms that exceed τ (initially 1, decreasing in each iteration).
+U||This prevents oscillation, as this loss term penalizes all large
+U||values simultaneously. Speciﬁcally, in each iteration we solve
+U||minimize c · f (x + δ) + · ∑
+U||i
+U||[(δi − τ )+]
+U||After each iteration, if δi < τ for all i, we reduce τ by a factor
+U||of 0.9 and repeat; otherwise, we terminate the search.
+U||Again we must choose a good constant c to use for the
+U||L∞ adversary. We take the same approach as we do for the
+U||L0 attack: initially set c to a very low value and run the L∞
+U||adversary at this c-value. If it fails, we double c and try again,
+U||until it is successful. We abort the search if c exceeds a ﬁxed
+U||threshold.
+U||Using “warm-start” for gradient descent in each iteration,
+U||this algorithm is about as fast as our L2 algorithm (with a
+U||single starting point).
+U||Figure 5 shows the L∞ attack applied to one digit of each
+U||source class, targeting each target class, on the MNSIT dataset.
+U||While most differences are not visually noticeable, a few are.
+U||Again, the worst case is that of a 7 being made to classify as
+U||a 6.
+U||48
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||Untargeted Average Case Least Likely
+U||mean prob mean prob mean prob
+U||Our L0 48 100% 410 100% 5200 100%
+U||JSMA-Z - 0% - 0% - 0%
+U||JSMA-F - 0% - 0% - 0%
+U||Our L2 0.32 100% 0.96 100% 2.22 100%
+U||Deepfool 0.91 100% - - - -
+U||Our L∞ 0.004 100% 0.006 100% 0.01 100%
+U||FGS 0.004 100% 0.064 2% - 0%
+U||IGS 0.004 100% 0.01 99% 0.03 98%
+U||TABLE V
+U||C OMPARISON OF THE THREE VARIANTS OF TARGETED ATTACK TO
+U||PREVIOUS WORK FOR THE I NCEPTION V 3 MODEL ON I MAGE N ET. W HEN
+U||SUCCESS RATE IS NOT 100%, THE MEAN IS ONLY OVER SUCCESSES .
+U||A comparable ﬁgure (Figure 13) for CIFAR is in the ap-
+U||pendix. No attack is visually distinguishable from the baseline
+U||image.
+U||VII. ATTACK E VALUATION
+U||We compare our targeted attacks to the best results pre-
+U||viously reported in prior publications, for each of the three
+U||distance metrics.
+U||We re-implement Deepfool, fast gradient sign, and iterative
+U||gradient sign. For fast gradient sign, we search over  to ﬁnd
+U||the smallest distance that generates an adversarial example;
+U||failures is returned if no  produces the target class. Our
+U||iterative gradient sign method is similar: we search over 
+U||(ﬁxing α = 1
+U||256 ) and return the smallest successful.
+U||For JSMA we use the implementation in CleverHans [35]
+U||with only slight modiﬁcation (we improve performance by
+U||50× with no impact on accuracy).
+U||JSMA is unable to run on ImageNet due to an inherent
+U||signiﬁcant computational cost: recall that JSMA performs
+U||search for a pair of pixels p, q that can be changed together
+U||that make the target class more likely and other classes less
+U||likely. ImageNet represents images as 299 × 299 × 3 vectors,
+U||so searching over all pairs of pixels would require 236 work
+U||on each step of the calculation. If we remove the search over
+U||pairs of pixels, the success of JSMA falls off dramatically. We
+U||therefore report it as failing always on ImageNet.
+U||We report success if the attack produced an adversarial
+U||example with the correct target label, no matter how much
+U||change was required. Failure indicates the case where the
+U||attack was entirely unable to succeed.
+U||We evaluate on the ﬁrst 1, 000 images in the test set on
+U||CIFAR and MNSIT. On ImageNet, we report on 1, 000 images
+U||that were initially classiﬁed correctly by Inception v3 12 . On
+U||ImageNet we approximate the best-case and worst-case results
+U||by choosing 100 target classes (10%) at random.
+U||The results are found in Table IV for MNIST and CIFAR,
+U||and Table V for ImageNet. 13
+U||12 Otherwise the best-case attack results would appear to succeed extremely
+U||often artiﬁcially low due to the relatively low top-1 accuracy
+U||13 The complete code to reproduce these tables and ﬁgures is available
+U||online at http://nicholas.carlini.com/code/nn robust attacks.
+U||Target Classiﬁcation
+U||0 1 2 3 4 5 6 7 8 9
+U||Distance Metric
+U||L∞ L2 L0
+U||Fig. 6. Targeted attacks for each of the 10 MNIST digits where the starting
+U||image is totally black for each of the three distance metrics.
+U||Target Classiﬁcation
+U||0 1 2 3 4 5 6 7 8 9
+U||Distance Metric
+U||L∞ L2 L0
+U||Fig. 7. Targeted attacks for each of the 10 MNIST digits where the starting
+U||image is totally white for each of the three distance metrics.
+U||For each distance metric, across all three datasets, our
+U||attacks ﬁnd closer adversarial examples than the previous
+U||state-of-the-art attacks, and our attacks never fail to ﬁnd an
+U||adversarial example. Our L0 and L2 attacks ﬁnd adversarial
+U||examples with 2× to 10× lower distortion than the best pre-
+U||viously published attacks, and succeed with 100% probability.
+U||Our L∞ attacks are comparable in quality to prior work, but
+U||their success rate is higher. Our L∞ attacks on ImageNet are so
+U||successful that we can change the classiﬁcation of an image
+U||to any desired label by only ﬂipping the lowest bit of each
+U||pixel, a change that would be impossible to detect visually.
+U||As the learning task becomes increasingly more difﬁcult, the
+U||previous attacks produce worse results, due to the complexity
+U||of the model. In contrast, our attacks perform even better as
+U||the task complexity increases. We have found JSMA is unable
+U||to ﬁnd targeted L0 adversarial examples on ImageNet, whereas
+U||ours is able to with 100% success.
+U||It is important to realize that the results between models
+U||are not directly comparable. For example, even though a L0
+U||adversary must change 10 times as many pixels to switch an
+U||ImageNet classiﬁcation compared to a MNIST classiﬁcation,
+U||ImageNet has 114× as many pixels and so the fraction of
+U||pixels that must change is signiﬁcantly smaller.
+U||Generating synthetic digits. With our targeted adversary,
+U||we can start from any image we want and ﬁnd adversarial
+U||examples of each given target. Using this, in Figure 6 we
+U||show the minimum perturbation to an entirely-black image
+U||required to make it classify as each digit, for each of the
+U||distance metrics.
+U||49
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||Best Case Average Case Worst Case
+U||MNIST CIFAR MNIST CIFAR MNIST CIFAR
+U||mean prob mean prob mean prob mean prob mean prob mean prob
+U||Our L0 8.5 100% 5.9 100% 16 100% 13 100% 33 100% 24 100%
+U||JSMA-Z 20 100% 20 100% 56 100% 58 100% 180 98% 150 100%
+U||JSMA-F 17 100% 25 100% 45 100% 110 100% 100 100% 240 100%
+U||Our L2 1.36 100% 0.17 100% 1.76 100% 0.33 100% 2.60 100% 0.51 100%
+U||Deepfool 2.11 100% 0.85 100% − - − - − - − -
+U||Our L∞ 0.13 100% 0.0092 100% 0.16 100% 0.013 100% 0.23 100% 0.019 100%
+U||Fast Gradient Sign 0.22 100% 0.015 99% 0.26 42% 0.029 51% − 0% 0.34 1%
+U||Iterative Gradient Sign 0.14 100% 0.0078 100% 0.19 100% 0.014 100% 0.26 100% 0.023 100%
+U||TABLE IV
+U||C OMPARISON OF THE THREE VARIANTS OF TARGETED ATTACK TO PREVIOUS WORK FOR OUR MNIST AND CIFAR MODELS . W HEN SUCCESS RATE IS
+U||NOT 100%, THE MEAN IS ONLY OVER SUCCESSES .
+U||This experiment was performed for the L0 task previously
+U||[38], however when mounting their attack, “for classes 0, 2,
+U||3 and 5 one can clearly recognize the target digit.” With our
+U||more powerful attacks, none of the digits are recognizable.
+U||Figure 7 performs the same analysis starting from an all-white
+U||image.
+U||Notice that the all-black image requires no change to
+U||become a digit 1 because it is initially classiﬁed as a 1, and
+U||the all-white image requires no change to become a 8 because
+U||the initial image is already an 8.
+U||Runtime Analysis. We believe there are two reasons why one
+U||may consider the runtime performance of adversarial example
+U||generation algorithms important: ﬁrst, to understand if the
+U||performance would be prohibitive for an adversary to actually
+U||mount the attacks, and second, to be used as an inner loop in
+U||adversarial re-training [11].
+U||Comparing the exact runtime of attacks can be misleading.
+U||For example, we have parallelized the implementation of
+U||our L2 adversary allowing it to run hundreds of attacks
+U||simultaneously on a GPU, increasing performance from 10×
+U||to 100×. However, we did not parallelize our L0 or L∞
+U||attacks. Similarly, our implementation of fast gradient sign
+U||is parallelized, but JSMA is not. We therefore refrain from
+U||giving exact performance numbers because we believe an
+U||unfair comparison is worse than no comparison.
+U||All of our attacks, and all previous attacks, are plenty
+U||efﬁcient to be used by an adversary. No attack takes longer
+U||than a few minutes to run on any given instance.
+U||When compared to L0, our attacks are 2 × −10× slower
+U||than our optimized JSMA algorithm (and signiﬁcantly faster
+U||than the un-optimized version). Our attacks are typically 10 ×
+U||−100× slower than previous attacks for L2 and L∞, with
+U||exception of iterative gradient sign which we are 10× slower.
+U||VIII. E VALUATING D EFENSIVE D ISTILLATION
+U||Distillation was initially proposed as an approach to reduce
+U||a large model (the teacher) down to a smaller distilled model
+U||[19]. At a high level, distillation works by ﬁrst training the
+U||teacher model on the training set in a standard manner. Then,
+U||we use the teacher to label each instance in the training set with
+U||soft labels (the output vector from the teacher network). For
+U||example, while the hard label for an image of a hand-written
+U||digit 7 will say it is classiﬁed as a seven, the soft labels might
+U||say it has a 80% chance of being a seven and a 20% chance
+U||of being a one. Then, we train the distilled model on the soft
+U||labels from the teacher, rather than on the hard labels from
+U||the training set. Distillation can potentially increase accuracy
+U||on the test set as well as the rate at which the smaller model
+U||learns to predict the hard labels [19], [30].
+U||Defensive distillation uses distillation in order to increase
+U||the robustness of a neural network, but with two signiﬁcant
+U||changes. First, both the teacher model and the distilled model
+U||are identical in size — defensive distillation does not result
+U||in smaller models. Second, and more importantly, defensive
+U||distillation uses a large distillation temperature (described
+U||below) to force the distilled model to become more conﬁdent
+U||in its predictions.
+U||Recall that, the softmax function is the last layer of a neural
+U||network. Defensive distillation modiﬁes the softmax function
+U||to also include a temperature constant T :
+U||softmax(x, T )i = exi/T
+U||∑
+U||j exj /T
+U||It is easy to see that softmax(x, T ) = softmax(x/T, 1). Intu-
+U||itively, increasing the temperature causes a “softer” maximum,
+U||and decreasing it causes a “harder” maximum. As the limit
+U||of the temperature goes to 0, softmax approaches max; as
+U||the limit goes to inﬁnity, softmax(x) approaches a uniform
+U||distribution.
+U||Defensive distillation proceeds in four steps:
+U||1) Train a network, the teacher network, by setting the
+U||temperature of the softmax to T during the training
+U||phase.
+U||2) Compute soft labels by apply the teacher network to
+U||each instance in the training set, again evaluating the
+U||softmax at temperature T .
+U||3) Train the distilled network (a network with the same
+U||shape as the teacher network) on the soft labels, using
+U||softmax at temperature T .
+U||50
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||4) Finally, when running the distilled network at test time
+U||(to classify new inputs), use temperature 1.
+U||A. Fragility of existing attacks
+U||We brieﬂy investigate the reason that existing attacks fail
+U||on distilled networks, and ﬁnd that existing attacks are very
+U||fragile and can easily fail to ﬁnd adversarial examples even
+U||when they exist.
+U||L-BFGS and Deepfool fail due to the fact that the gradient
+U||of F (·) is zero almost always, which prohibits the use of the
+U||standard objective function.
+U||When we train a distilled network at temperature T and
+U||then test it at temperature 1, we effectively cause the inputs to
+U||the softmax to become larger by a factor of T . By minimizing
+U||the cross entropy during training, the output of the softmax
+U||is forced to be close to 1.0 for the correct class and 0.0 for
+U||all others. Since Z(·) is divided by T , the distilled network
+U||will learn to make the Z(·) values T times larger than they
+U||otherwise would be. (Positive values are forced to become
+U||about T times larger; negative values are multiplied by a
+U||factor of about T and thus become even more negative.)
+U||Experimentally, we veriﬁed this fact: the mean value of the
+U||L1 norm of Z(·) (the logits) on the undistilled network is
+U||5.8 with standard deviation 6.4; on the distilled network (with
+U||T = 100), the mean is 482 with standard deviation 457.
+U||Because the values of Z(·) are 100 times larger, when
+U||we test at temperature 1, the output of F becomes  in all
+U||components except for the output class which has conﬁdence
+U||1−9 for some very small  (for tasks with 10 classes). In fact,
+U||in most cases,  is so small that the 32-bit ﬂoating-point value
+U||is rounded to 0. For similar reasons, the gradient is so small
+U||that it becomes 0 when expressed as a 32-bit ﬂoating-point
+U||value.
+U||This causes the L-BFGS minimization procedure to fail to
+U||make progress and terminate. If instead we run L-BFGS with
+U||our stable objective function identiﬁed earlier, rather than the
+U||objective function lossF,l(·) suggested by Szegedy et al. [46],
+U||L-BFGS does not fail. An alternate approach to ﬁxing the
+U||attack would be to set
+U||F ′(x) = softmax(Z(x)/T )
+U||where T is the distillation temperature chosen. Then mini-
+U||mizing lossF ′,l(·) will not fail, as now the gradients do not
+U||vanish due to ﬂoating-point arithmetic rounding. This clearly
+U||demonstrates the fragility of using the loss function as the
+U||objective to minimize.
+U||JSMA-F (whereby we mean the attack uses the output of
+U||the ﬁnal layer F (·)) fails for the same reason that L-BFGS
+U||fails: the output of the Z(·) layer is very large and so softmax
+U||becomes essentially a hard maximum. This is the version of the
+U||attack that Papernot et al. use to attack defensive distillation
+U||in their paper [39].
+U||JSMA-Z (the attack that uses the logits) fails for a com-
+U||pletely different reason. Recall that in the Z(·) version of
+U||the attack, we use the input to the softmax for computing
+U||the gradient instead of the ﬁnal output of the network. This
+U||removes any potential issues with the gradient vanishing,
+U||however this introduces new issues. This version of the attack
+U||is introduced by Papernot et al. [38] but it is not used to attack
+U||distillation; we provide here an analysis of why it fails.
+U||Since this attack uses the Z values, it is important to realize
+U||the differences in relative impact. If the smallest input to
+U||the softmax layer is −100, then, after the softmax layer, the
+U||corresponding output becomes practically zero. If this input
+U||changes from −100 to −90, the output will still be practically
+U||zero. However, if the largest input to the softmax layer is 10,
+U||and it changes to 0, this will have a massive impact on the
+U||softmax output.
+U||Relating this to parameters used in their attack, α and β
+U||represent the size of the change at the input to the softmax
+U||layer. It is perhaps surprising that JSMA-Z works on un-
+U||distilled networks, as it treats all changes as being of equal
+U||importance, regardless of how much they change the softmax
+U||output. If changing a single pixel would increase the target
+U||class by 10, but also increase the least likely class by 15, the
+U||attack will not increase that pixel.
+U||Recall that distillation at temperature T causes the value of
+U||the logits to be T times larger. In effect, this magniﬁes the sub-
+U||optimality noted above as logits that are extremely unlikely but
+U||have slight variation can cause the attack to refuse to make
+U||any changes.
+U||Fast Gradient Sign fails at ﬁrst for the same reason L-
+U||BFGS fails: the gradients are almost always zero. However,
+U||something interesting happens if we attempt the same division
+U||trick and divide the logits by T before feeding them to the
+U||softmax function: distillation still remains effective [36]. We
+U||are unable to explain this phenomenon.
+U||B. Applying Our Attacks
+U||When we apply our attacks to defensively distilled net-
+U||works, we ﬁnd distillation provides only marginal value. We
+U||re-implement defensive distillation on MNIST and CIFAR-10
+U||as described [39] using the same model we used for our eval-
+U||uation above. We train our distilled model with temperature
+U||T = 100, the value found to be most effective [39].
+U||Table VI shows our attacks when applied to distillation. All
+U||of the previous attacks fail to ﬁnd adversarial examples. In
+U||contrast, our attack succeeds with 100% success probability
+U||for each of the three distance metrics.
+U||When compared to Table IV, distillation has added almost
+U||no value: our L0 and L2 attacks perform slightly worse, and
+U||our L∞ attack performs approximately equally. All of our
+U||attacks succeed with 100% success.
+U||C. Effect of Temperature
+U||In the original work, increasing the temperature was found
+U||to consistently reduce attack success rate. On MNIST, this
+U||goes from a 91% success rate at T = 1 to a 24% success rate
+U||for T = 5 and ﬁnally 0.5% success at T = 100.
+U||51
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||Best Case Average Case Worst Case
+U||MNIST CIFAR MNIST CIFAR MNIST CIFAR
+U||mean prob mean prob mean prob mean prob mean prob mean prob
+U||Our L0 10 100% 7.4 100% 19 100% 15 100% 36 100% 29 100%
+U||Our L2 1.7 100% 0.36 100% 2.2 100% 0.60 100% 2.9 100% 0.92 100%
+U||Our L∞ 0.14 100% 0.002 100% 0.18 100% 0.023 100% 0.25 100% 0.038 100%
+U||TABLE VI
+U||C OMPARISON OF OUR ATTACKS WHEN APPLIED TO DEFENSIVELY DISTILLED NETWORKS . C OMPARE TO TABLE IV FOR UNDISTILLED NETWORKS .
+U||●
+U||●
+U||●
+U||●
+U||● ● ● ● ●
+U||●
+U||● ● ●
+U||●
+U||●
+U||●
+U||● ●
+U||●
+U||● ●
+U||0 20 40 60 80 100
+U||0.0 0.5 1.0 1.5 2.0 2.5 3.0
+U||Distillation Temperature
+U||Mean Adversarial Distance
+U||Fig. 8. Mean distance to targeted (with random target) adversarial examples
+U||for different distillation temperatures on MNIST. Temperature is uncorrelated
+U||with mean adversarial example distance.
+U||We re-implement this experiment with our improved attacks
+U||to understand how the choice of temperature impacts robust-
+U||ness. We train models with the temperature varied from t = 1
+U||to t = 100.
+U||When we re-run our implementation of JSMA, we observe
+U||the same effect: attack success rapidly decreases. However,
+U||with our improved L2 attack, we see no effect of temperature
+U||on the mean distance to adversarial examples: the correlation
+U||coefﬁcient is ρ = −0.05. This clearly demonstrates the fact
+U||that increasing the distillation temperature does not increase
+U||the robustness of the neural network, it only causes existing
+U||attacks to fail more often.
+U||D. Transferability
+U||Recent work has shown that an adversarial example for one
+U||model will often transfer to be an adversarial on a different
+U||model, even if they are trained on different sets of training data
+U||[46], [11], and even if they use entirely different algorithms
+U||(i.e., adversarial examples on neural networks transfer to
+U||random forests [37]).
+U||0 10 20 30 40
+U||0.0 0.2 0.4 0.6 0.8 1.0
+U||Value of k
+U||Probability Adversarial Example Transfers, Baseline
+U||Untargetted
+U||Targetted
+U||Fig. 9. Probability that adversarial examples transfer from one model to
+U||another, for both targeted (the adversarial class remains the same) and
+U||untargeted (the image is not the correct class).
+U||Therefore, any defense that is able to provide robust-
+U||ness against adversarial examples must somehow break this
+U||transferability property; otherwise, we could run our attack
+U||algorithm on an easy-to-attack model, and then transfer those
+U||adversarial examples to the hard-to-attack model.
+U||Even though defensive distillation is not robust to our
+U||stronger attacks, we demonstrate a second break of distillation
+U||by transferring attacks from a standard model to a defensively
+U||distilled model.
+U||We accomplish this by ﬁnding high-conﬁdence adversar-
+U||ial examples, which we deﬁne as adversarial examples that
+U||are strongly misclassiﬁed by the original model. Instead of
+U||looking for an adversarial example that just barely changes
+U||the classiﬁcation from the source to the target, we want one
+U||where the target is much more likely than any other label.
+U||Recall the loss function deﬁned earlier for L2 attacks:
+U||f (x′) = max(max{Z(x′)i : i  = t} − Z(x′)t, −κ).
+U||The purpose of the parameter κ is to control the strength of
+U||adversarial examples: the larger κ, the stronger the classiﬁ-
+U||52
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||0 10 20 30 40
+U||0.0 0.2 0.4 0.6 0.8
+U||Value of k
+U||Probability Adversarial Example Transfers, Distilled
+U||Untargetted
+U||Targetted
+U||Fig. 10. Probability that adversarial examples transfer from the baseline model
+U||to a model trained with defensive distillation at temperature 100.
+U||cation of the adversarial example. This allows us to generate
+U||high-conﬁdence adversarial examples by increasing κ.
+U||We ﬁrst investigate if our hypothesis is true that the stronger
+U||the classiﬁcation on the ﬁrst model, the more likely it will
+U||transfer. We do this by varying κ from 0 to 40.
+U||Our baseline experiment uses two models trained on MNIST
+U||as described in Section IV, with each model trained on half of
+U||the training data. We ﬁnd that the transferability success rate
+U||increases linearly from κ = 0 to κ = 20 and then plateaus
+U||at near-100% success for κ ≈ 20, so clearly increasing κ
+U||increases the probability of a successful transferable attack.
+U||We then run this same experiment only instead we train
+U||the second model with defensive distillation, and ﬁnd that
+U||adversarial examples do transfer. This gives us another at-
+U||tack technique for ﬁnding adversarial examples on distilled
+U||networks.
+U||However, interestingly, the transferability success rate be-
+U||tween the unsecured model and the distilled model only
+U||reaches 100% success at κ = 40, in comparison to the previous
+U||approach that only required κ = 20.
+U||We believe that this approach can be used in general to
+U||evaluate the robustness of defenses, even if the defense is able
+U||to completely block ﬂow of gradients to cause our gradient-
+U||descent based approaches from succeeding.
+U||IX. C ONCLUSION
+U||The existence of adversarial examples limits the areas in
+U||which deep learning can be applied. It is an open problem
+U||to construct defenses that are robust to adversarial examples.
+U||In an attempt to solve this problem, defensive distillation
+U||was proposed as a general-purpose procedure to increase the
+U||robustness of an arbitrary neural network.
+U||In this paper, we propose powerful attacks that defeat
+U||defensive distillation, demonstrating that our attacks more
+U||generally can be used to evaluate the efﬁcacy of potential
+U||defenses. By systematically evaluating many possible attack
+U||approaches, we settle on one that can consistently ﬁnd better
+U||adversarial examples than all existing approaches. We use this
+U||evaluation as the basis of our three L0, L2, and L∞ attacks.
+U||We encourage those who create defenses to perform the two
+U||evaluation approaches we use in this paper:
+U||• Use a powerful attack (such as the ones proposed in this
+U||paper) to evaluate the robustness of the secured model
+U||directly. Since a defense that prevents our L2 attack will
+U||prevent our other attacks, defenders should make sure to
+U||establish robustness against the L2 distance metric.
+U||• Demonstrate that transferability fails by constructing
+U||high-conﬁdence adversarial examples on a unsecured
+U||model and showing they fail to transfer to the secured
+U||model.
+U||A CKNOWLEDGEMENTS
+U||We would like to thank Nicolas Papernot discussing our
+U||defensive distillation implementation, and the anonymous re-
+U||viewers for their helpful feedback. This work was supported
+U||by Intel through the ISTC for Secure Computing, Qualcomm,
+U||Cisco, the AFOSR under MURI award FA9550-12-1-0040,
+U||and the Hewlett Foundation through the Center for Long-Term
+U||Cybersecurity.
+U||R EFERENCES
+1||A NDOR , D., A LBERTI , C., W EISS , D., S EVERYN , A., P RESTA , A.,
+U||G ANCHEV, K., P ETROV, S., AND C OLLINS , M. Globally normalized
+U||transition-based neural networks. arXiv preprint arXiv:1603.06042
+U||(2016).
+2||B ASTANI , O., I OANNOU , Y., L AMPROPOULOS , L., V YTINIOTIS , D.,
+U||N ORI , A., AND C RIMINISI , A. Measuring neural net robustness with
+U||constraints. arXiv preprint arXiv:1605.07262 (2016).
+3||B OJARSKI , M., D EL T ESTA , D., D WORAKOWSKI , D., F IRNER , B.,
+U||F LEPP, B., G OYAL , P., JACKEL , L. D., M ONFORT, M., M ULLER , U.,
+U||Z HANG , J., ET AL . End to end learning for self-driving cars. arXiv
+U||preprint arXiv:1604.07316 (2016).
+4||B OURZAC , K. Bringing big neural networks to
+U||self-driving cars, smartphones, and drones. http:
+U||//spectrum.ieee.org/computing/embedded-systems/
+U||bringing-big-neural-networks-to-selfdriving-cars-smartphones-and-drones,
+U||2016.
+5||C ARLINI , N., M ISHRA , P., VAIDYA , T., Z HANG , Y., S HERR , M.,
+U||S HIELDS , C., WAGNER , D., AND Z HOU , W. Hidden voice commands.
+U||In 25th USENIX Security Symposium (USENIX Security 16), Austin, TX
+U||(2016).
+6||C HANDOLA , V., B ANERJEE , A., AND K UMAR , V. Anomaly detection:
+U||A survey. ACM computing surveys (CSUR) 41, 3 (2009), 15.
+7||C LEVERT, D.-A., U NTERTHINER , T., AND H OCHREITER , S. Fast and
+U||accurate deep network learning by exponential linear units (ELUs).
+U||arXiv preprint arXiv:1511.07289 (2015).
+8||D AHL , G. E., S TOKES , J. W., D ENG , L., AND Y U , D. Large-scale
+U||malware classiﬁcation using random projections and neural networks. In
+U||2013 IEEE International Conference on Acoustics, Speech and Signal
+U||Processing (2013), IEEE, pp. 3422–3426.
+9||D ENG , J., D ONG , W., S OCHER , R., L I , L.-J., L I , K., AND F EI -F EI ,
+U||L. Imagenet: A large-scale hierarchical image database. In Computer
+U||Vision and Pattern Recognition, 2009. CVPR 2009. IEEE Conference
+U||on (2009), IEEE, pp. 248–255.
+U||53
+U||Authorized licensed use limited to: IEEE Xplore. Downloaded on June 04,2025 at 00:25:25 UTC from IEEE Xplore. Restrictions apply.
+U||[10] G IUSTI , A., G UZZI , J., C IRES¸ AN , D. C., H E , F.-L., R ODR ´IGUEZ ,
+U||J. P., F ONTANA , F., FAESSLER , M., F ORSTER , C., S CHMIDHUBER , J.,
+U||D I C ARO , G., ET AL . A machine learning approach to visual perception
+U||of forest trails for mobile robots. IEEE Robotics and Automation Letters
+U||1, 2 (2016), 661–667.
+U||[11] G OODFELLOW, I. J., S HLENS , J., AND S ZEGEDY, C. Explaining
+U||and harnessing adversarial examples. arXiv preprint arXiv:1412.6572
+U||(2014).
+U||[12] G RAHAM , B. Fractional max-pooling. arXiv preprint arXiv:1412.6071
+U||(2014).
+U||[13] G RAVES , A., M OHAMED , A.- R ., AND H INTON , G. Speech recognition
+U||with deep recurrent neural networks. In 2013 IEEE international
+U||conference on acoustics, speech and signal processing (2013), IEEE,
+U||pp. 6645–6649.
+U||[14] G ROSSE , K., PAPERNOT, N., M ANOHARAN , P., B ACKES , M., AND
+U||M C D ANIEL , P. Adversarial perturbations against deep neural networks
+U||for malware classiﬁcation. arXiv preprint arXiv:1606.04435 (2016).
+U||[15] G U , S., AND R IGAZIO , L. Towards deep neural network architectures
+U||robust to adversarial examples. arXiv preprint arXiv:1412.5068 (2014).
+U||[16] H E , K., Z HANG , X., R EN , S., AND S UN , J. Deep residual learning for
+U||image recognition. In Proceedings of the IEEE Conference on Computer
+U||Vision and Pattern Recognition (2016), pp. 770–778.
+U||[17] H INTON , G., D ENG , L., Y U , D., D AHL , G., RAHMAN M OHAMED , A.,
+U||JAITLY, N., S ENIOR , A., VANHOUCKE , V., N GUYEN , P., S AINATH , T.,
+U||AND K INGSBURY, B. Deep neural networks for acoustic modeling in
+U||speech recognition. Signal Processing Magazine (2012).
+U||[18] H INTON , G., D ENG , L., Y U , D., D AHL , G. E., M OHAMED , A.- R .,
+U||JAITLY, N., S ENIOR , A., VANHOUCKE , V., N GUYEN , P., S AINATH ,
+U||T. N., ET AL . Deep neural networks for acoustic modeling in speech
+U||recognition: The shared views of four research groups. IEEE Signal
+U||Processing Magazine 29, 6 (2012), 82–97.
+U||[19] H INTON , G., V INYALS , O., AND D EAN , J. Distilling the knowledge in
+U||a neural network. arXiv preprint arXiv:1503.02531 (2015).
+U||[20] H UANG , R., X U , B., S CHUURMANS , D., AND S ZEPESV ´ARI , C. Learn-
+U||ing with a strong adversary. CoRR, abs/1511.03034 (2015).
+U||[21] H UANG , X., K WIATKOWSKA , M., WANG , S., AND W U , M. Safety
+U||veriﬁcation of deep neural networks. arXiv preprint arXiv:1610.06940
+U||(2016).
+U||[22] JANGLOV ´A , D. Neural networks in mobile robot motion. Cutting Edge
+U||Robotics 1, 1 (2005), 243.
+U||[23] K INGMA , D., AND B A , J. Adam: A method for stochastic optimization.
+U||arXiv preprint arXiv:1412.6980 (2014).
+U||[24] K RIZHEVSKY, A., AND H INTON , G. Learning multiple layers of
+U||features from tiny images.
+U||[25] K RIZHEVSKY, A., S UTSKEVER , I., AND H INTON , G. E. ImageNet
+U||classiﬁcation with deep convolutional neural networks. In Advances
+U||in neural information processing systems (2012), pp. 1097–1105.
+U||[26] K URAKIN , A., G OODFELLOW, I., AND B ENGIO , S. Adversarial exam-
+U||ples in the physical world. arXiv preprint arXiv:1607.02533 (2016).
+U||[27] L E C UN , Y., B OTTOU , L., B ENGIO , Y., AND H AFFNER , P. Gradient-
+U||based learning applied to document recognition. Proceedings of the
+U||IEEE 86, 11 (1998), 2278–2324.
+U||[28] L E C UN , Y., C ORTES , C., AND B URGES , C. J. The mnist database of
+U||handwritten digits, 1998.
+U||[29] M AAS , A. L., H ANNUN , A. Y., AND N G , A. Y. Rectiﬁer nonlinearities
+U||improve neural network acoustic models. In Proc. ICML (2013), vol. 30.
+U||[30] M ELICHER , W., U R , B., S EGRETI , S. M., K OMANDURI , S., B AUER ,
+U||L., C HRISTIN , N., AND C RANOR , L. F. Fast, lean and accurate:
+U||Modeling password guessability using neural networks. In Proceedings
+U||of USENIX Security (2016).
+U||[31] M ISHKIN , D., AND M ATAS , J. All you need is a good init. arXiv
+U||preprint arXiv:1511.06422 (2015).
+U||[32] M NIH , V., K AVUKCUOGLU , K., S ILVER , D., G RAVES , A.,
+U||A NTONOGLOU , I., W IERSTRA , D., AND R IEDMILLER , M. Playing
+U||Atari with deep reinforcement learning. arXiv preprint arXiv:1312.5602
+U||(2013).
+U||[33] M NIH , V., K AVUKCUOGLU , K., S ILVER , D., R USU , A. A., V ENESS ,
+U||J., B ELLEMARE , M. G., G RAVES , A., R IEDMILLER , M., F IDJELAND ,
+U||A. K., O STROVSKI , G., ET AL . Human-level control through deep
+U||reinforcement learning. Nature 518, 7540 (2015), 529–533.
+U||[34] M OOSAVI -D EZFOOLI , S.-M., FAWZI , A., AND F ROSSARD , P. Deep-
+U||fool: a simple and accurate method to fool deep neural networks. arXiv
+U||preprint arXiv:1511.04599 (2015).
+U||[35] PAPERNOT, N., G OODFELLOW, I., S HEATSLEY, R., F EINMAN , R., AND
+U||M C D ANIEL , P. cleverhans v1.0.0: an adversarial machine learning
+U||library. arXiv preprint arXiv:1610.00768 (2016).
+U||[36] PAPERNOT, N., AND M C D ANIEL , P. On the effectiveness of defensive
+U||distillation. arXiv preprint arXiv:1607.05113 (2016).
+U||[37] PAPERNOT, N., M C D ANIEL , P., AND G OODFELLOW, I. Transferabil-
+U||ity in machine learning: from phenomena to black-box attacks using
+U||adversarial samples. arXiv preprint arXiv:1605.07277 (2016).
+U||[38] PAPERNOT, N., M C D ANIEL , P., J HA , S., F REDRIKSON , M., C ELIK ,
+U||Z. B., AND S WAMI , A. The limitations of deep learning in adversarial
+U||settings. In 2016 IEEE European Symposium on Security and Privacy
+U||(EuroS&P) (2016), IEEE, pp. 372–387.
+U||[39] PAPERNOT, N., M C D ANIEL , P., W U , X., J HA , S., AND S WAMI , A.
+U||Distillation as a defense to adversarial perturbations against deep neural
+U||networks. IEEE Symposium on Security and Privacy (2016).
+U||[40] PASCANU , R., S TOKES , J. W., S ANOSSIAN , H., M ARINESCU , M.,
+U||AND T HOMAS , A. Malware classiﬁcation with recurrent networks. In
+U||2015 IEEE International Conference on Acoustics, Speech and Signal
+U||Processing (ICASSP) (2015), IEEE, pp. 1916–1920.
+U||[41] R USSAKOVSKY, O., D ENG , J., S U , H., K RAUSE , J., S ATHEESH , S.,
+U||M A , S., H UANG , Z., K ARPATHY, A., K HOSLA , A., B ERNSTEIN , M.,
+U||B ERG , A. C., AND F EI -F EI , L. ImageNet Large Scale Visual Recogni-
+U||tion Challenge. International Journal of Computer Vision (IJCV) 115,
+U||3 (2015), 211–252.
+U||[42] S HAHAM , U., YAMADA , Y., AND N EGAHBAN , S. Understanding
+U||adversarial training: Increasing local stability of neural nets through
+U||robust optimization. arXiv preprint arXiv:1511.05432 (2015).
+U||[43] S ILVER , D., H UANG , A., M ADDISON , C. J., G UEZ , A., S IFRE , L.,
+U||VAN D EN D RIESSCHE , G., S CHRITTWIESER , J., A NTONOGLOU , I.,
+U||PANNEERSHELVAM , V., L ANCTOT, M., ET AL . Mastering the game
+U||of Go with deep neural networks and tree search. Nature 529, 7587
+U||(2016), 484–489.
+U||[44] S PRINGENBERG , J. T., D OSOVITSKIY, A., B ROX , T., AND R IED -
+U||MILLER , M. Striving for simplicity: The all convolutional net. arXiv
+U||preprint arXiv:1412.6806 (2014).
+U||[45] S ZEGEDY, C., VANHOUCKE , V., I OFFE , S., S HLENS , J., AND W OJNA ,
+U||Z. Rethinking the Inception architecture for computer vision. arXiv
+U||preprint arXiv:1512.00567 (2015).
+U||[46] S ZEGEDY, C., Z AREMBA , W., S UTSKEVER , I., B RUNA , J., E RHAN ,
+U||D., G OODFELLOW, I., AND F ERGUS , R. Intriguing properties of neural
+U||networks. ICLR (2013).
+U||[47] WARDE -FARLEY, D., AND G OODFELLOW, I. Adversarial perturbations
+U||of deep neural networks. Advanced Structured Prediction, T. Hazan, G.
+U||Papandreou, and D. Tarlow, Eds (2016).
+U||[48] Y UAN , Z., L U , Y., WANG , Z., AND X UE , Y. Droid-sec: Deep learning
+U||in android malware detection. In ACM SIGCOMM Computer Commu-
+U||nication Review (2014), vol. 44, ACM, pp. 371–3

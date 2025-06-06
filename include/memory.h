@@ -1,4 +1,5 @@
 // ===============================================================
+// memory.h — Memory Vector Interface
 // Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
@@ -6,33 +7,46 @@
 #ifndef MEMORY_H
 #define MEMORY_H
 
-#define MAX_MEMORY_ITEMS 1024
-#define MAX_MEMORY_LEN 512
-#define EMBEDDING_SIZE 64  // Update if your system uses a different size
+#include <math.h>
 
+#define MAX_MEMORY_ITEMS 9422
+#define MAX_MEMORY_LEN   1024
+#define EMBEDDING_SIZE   64
+
+// ---------------------------------------------------------------
+// 🧠 Memory Structure
+// ---------------------------------------------------------------
 typedef struct {
-    char content[MAX_MEMORY_LEN];
+    char  content[MAX_MEMORY_LEN];
     float vector[EMBEDDING_SIZE];
+    char  type;  // 'Q', 'A', 'U' (question, answer, unknown)
 } MemoryItem;
 
-// Load memory file (line-by-line, embed to vector)
+// ---------------------------------------------------------------
+// 📚 Global Memory Store
+// ---------------------------------------------------------------
+extern MemoryItem memory[MAX_MEMORY_ITEMS];
+extern int        memory_count;
+
+// ---------------------------------------------------------------
+// 🔄 Load + Save
+// ---------------------------------------------------------------
 void load_memory(const char* filename);
-
-// Load all .mem files from memory folder
 void load_all_memories();
-
-// Save current memory to disk
 void save_memory(const char* filename);
 
-// Add a new memory line (text + vector)
+// ---------------------------------------------------------------
+// ➕ Add to Memory
+// ---------------------------------------------------------------
 void remember(const char* text);
+void remember_with_type(const char* text, char type);  // ⬅️ Add by type
 
-// Print all memory content
-void print_memory();
-
-// === New Functions for Vector-Based Logic ===
-int memory_count_items();
-float* memory_get_vector(int index);
+// ---------------------------------------------------------------
+// 🧰 Memory Utilities
+// ---------------------------------------------------------------
+void        print_memory();
+int         memory_count_items();
+float*      memory_get_vector(int index);
 const char* memory_get_text(int index);
 
-#endif
+#endif  // MEMORY_H
