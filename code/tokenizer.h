@@ -7,8 +7,8 @@
 #ifndef TOKENIZER_H
 #define TOKENIZER_H
 
-#define MAX_TOKENS     1024
-#define MAX_TOKEN_LEN  64
+#include "config.h"
+
 
 // ---------------------------------------------------------------
 // 🪓 Tokenizer Interface

@@ -9,9 +9,8 @@
 
 #include <math.h>
 
-#define MAX_MEMORY_ITEMS 9422
-#define MAX_MEMORY_LEN   1024
-#define EMBEDDING_SIZE   64
+#include "config.h"
+
 
 // ---------------------------------------------------------------
 // 🧠 Memory Structure

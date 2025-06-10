@@ -1,19 +1,21 @@
 // ===============================================================
-// logic.c Silent Prototype — BuiltByWill
+// logic.c — Semantic Response Generator
+// Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
-
 
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <math.h>
 
-#include "../include/tokenizer.h"
-#include "../include/attention.h"
-#include "../include/embedder.h"
-#include "../include/memory.h"
-#include "../include/logic.h"
+#include "tokenizer.h"
+#include "attention.h"
+#include "embedder.h"
+#include "memory.h"
+#include "logic.h"
+#include "softmax.h"
+
 
 // ---------------------------------------------------------------
 // Generates a response by embedding input tokens and scanning memory
@@ -44,9 +46,12 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
 
     for (int i = 0; i < mem_count; i++) {
         float* mem_vec = memory_get_vector(i);
-        normalize_vector(mem_vec, EMBEDDING_SIZE);
 
-        float score = cosine_similarity(input_vec, mem_vec, EMBEDDING_SIZE);
+        float mem_copy[EMBEDDING_SIZE];
+        memcpy(mem_copy, mem_vec, sizeof(float) * EMBEDDING_SIZE);
+        normalize_vector(mem_copy, EMBEDDING_SIZE);
+
+        float score = cosine_similarity(input_vec, mem_copy, EMBEDDING_SIZE);
         scores[i] = score;
 
         if (score > best_score) {

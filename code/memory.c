@@ -10,9 +10,9 @@
 #include <dirent.h>
 #include <sys/types.h>
 
-#include "../include/tokenizer.h"
-#include "../include/embedder.h"
-#include "../include/memory.h"
+#include "tokenizer.h"
+#include "embedder.h"
+#include "memory.h"
 
 #define MAX_MEMORY_ITEMS 9422
 

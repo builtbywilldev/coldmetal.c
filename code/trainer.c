@@ -7,7 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#include "../include/memory.h"
+#include "memory.h"
 
 // JSON parser for ChatGPT exports
 void train_from_json(const char* path) {

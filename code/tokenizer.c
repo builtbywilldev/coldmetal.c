@@ -7,8 +7,8 @@
 #include <ctype.h>
 #include <string.h>
 
-#include "../include/tokenizer.h"
-#include "../include/memory.h"
+#include "tokenizer.h"
+#include "memory.h"
 
 // ---------------------------------------------------------------
 // ⛓️ Token Boundary Logic — Preserves apostrophes like "don't"

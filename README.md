@@ -1,4 +1,4 @@
-# 🧠 coldmetal.c  
+# 🔥 Coldmetal.c — Dependency-Free AI Memory Engine (C) 
 A fully offline, zero-dependency AI system inspired by `llm.c` — engineered for airgapped environments.  
 Built in pure C with no Python, no external libraries, and no cloud ties.  
 

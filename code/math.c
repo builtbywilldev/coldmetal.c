@@ -11,8 +11,8 @@
 #include <float.h>     // FLT_EPSILON
 #include <stdio.h>
 
-#include "../include/attention.h"
-#include "../include/memory.h"
+#include "attention.h"
+#include "memory.h"
 
 // ============================
 // 🔢 Vector Math Core

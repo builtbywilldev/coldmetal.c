@@ -1,5 +1,6 @@
 // ===============================================================
-// main.c Silent Prototype — BuiltByWill
+// main.c — Morpheus Terminal REPL
+// Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
 
@@ -9,10 +10,10 @@
 #include <time.h>
 #include <math.h>
 
-#include "../include/tokenizer.h"
-#include "../include/embedder.h"
-#include "../include/attention.h"
-#include "../include/memory.h"
+#include "tokenizer.h"
+#include "embedder.h"
+#include "attention.h"
+#include "memory.h"
 
 #define MEMORY_PATH "data/.mem/morpheus.mem"
 
@@ -57,8 +58,12 @@ int main() {
             if (strcmp(input, mem_text) == 0) continue;
 
             float *mem_vec = memory_get_vector(i);
-            normalize_vector(mem_vec, EMBEDDING_SIZE);
-            float score = cosine_similarity(input_vec, mem_vec, EMBEDDING_SIZE);
+
+            float mem_copy[EMBEDDING_SIZE];
+            memcpy(mem_copy, mem_vec, sizeof(float) * EMBEDDING_SIZE);
+            normalize_vector(mem_copy, EMBEDDING_SIZE);
+
+            float score = cosine_similarity(input_vec, mem_copy, EMBEDDING_SIZE);
 
             if (score > best_score) {
                 best_score = score;

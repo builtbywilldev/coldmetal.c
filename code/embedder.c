@@ -1,16 +1,17 @@
 // ===============================================================
-// embedder.c Silent Prototype — BuiltByWill
+// embedder.c — Token Embedding Engine
+// Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
-
 
 #include <math.h>     // sqrtf
 #include <stdio.h>
 #include <float.h>    // FLT_EPSILON
 
-#include "../include/tokenizer.h"
-#include "../include/attention.h"
-#include "../include/memory.h"
+#include "tokenizer.h"
+#include "attention.h"
+#include "memory.h"
+#include "math.h" // optional for vector_norm
 
 // ---------------------------------------------------------------
 // Hash-based token embedding: maps a token to a signed float vector
@@ -51,16 +52,8 @@ void embed_text(const char *text, float *out_vector) {
     }
 
     // Normalize the final vector
-    float norm = 0.0f;
-    for (int i = 0; i < EMBEDDING_SIZE; i++) {
-        norm += out_vector[i] * out_vector[i];
-    }
-
-    norm = sqrtf(norm);
-
+    float norm = vector_norm(out_vector, EMBEDDING_SIZE);
     if (norm > FLT_EPSILON) {
-        for (int i = 0; i < EMBEDDING_SIZE; i++) {
-            out_vector[i] /= norm;
-        }
+        normalize_vector(out_vector, EMBEDDING_SIZE);
     }
 }

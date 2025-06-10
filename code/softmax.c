@@ -7,7 +7,7 @@
 #include <math.h>      // expf
 #include <float.h>     // FLT_EPSILON
 
-#include "../include/softmax.h"
+#include "softmax.h"
 
 // Stable, float-precise softmax
 void softmax(const float* input, float* output, int length) {

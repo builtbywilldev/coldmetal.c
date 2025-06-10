@@ -1,5 +1,6 @@
 // ===============================================================
-// attention.c Silent Prototype — BuiltByWill
+// attention.c — Semantic Similarity Engine
+// Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
 #define _GNU_SOURCE
@@ -8,20 +9,9 @@
 #include <float.h>    // FLT_EPSILON
 #include <stdio.h>
 
-#include "../include/tokenizer.h"
-#include "../include/attention.h"
-#include "../include/memory.h"
-
-// ---------------------------------------------------------------
-// Computes the dot product between two float vectors
-// ---------------------------------------------------------------
-float dot_product(const float *a, const float *b, int size) {
-    float sum = 0.0f;
-    for (int i = 0; i < size; i++) {
-        sum += a[i] * b[i];
-    }
-    return sum;
-}
+#include "tokenizer.h"
+#include "attention.h"
+#include "memory.h"
 
 // ---------------------------------------------------------------
 // Computes the cosine similarity between two float vectors
