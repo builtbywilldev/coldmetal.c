@@ -1,5 +1,6 @@
 # 🧠 Coldmetal.c™ — Demo Vault
 
+
 This folder is a visual artifact archive from the development of Coldmetal.c — a proprietary offline AI system built in C.
 
 Coldmetal is not a chatbot.  
