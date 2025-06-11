@@ -106,7 +106,7 @@ void remember(const char* text) {
 
 // ===============================================================
 // 🧠 Tagged Memory Storage
-// Called from upgraded trainer.c
+// Called from upgraded memory_builder.c
 // ===============================================================
 void remember_with_type(const char* text, char type) {
     if (memory_count >= MAX_MEMORY_ITEMS) return;

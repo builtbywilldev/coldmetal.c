@@ -1,4 +1,4 @@
-# 🔥 Coldmetal.c — Dependency-Free AI Memory Engine (C) 
+# 🔥 Coldmetal.c™ — Dependency-Free AI Memory Engine (C) 
 A fully offline, zero-dependency AI system inspired by `llm.c` — engineered for airgapped environments.  
 Built in pure C with no Python, no external libraries, and no cloud ties.  
 
@@ -30,12 +30,13 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 
 ### 🔒 License
 
-This project is proprietary and not open-source.
+Coldmetal.c™ is proprietary software.  
+It is not open-source. It is not a model. It is not a chatbot.  
+Do not use this code without written permission from BuiltByWill™.
 
-    The core logic and architecture of coldmetal.c are licensed exclusively to Silent Prototype Labs and BuiltByWill.
-    Redistribution, modification, or reuse of any part of this system is prohibited without written permission.
+For access inquiries or research partnerships: builtbywill@proton.me
 
-If you're interested in collaboration, licensing, or research use, contact: builtbywill@proton.me. 
+
 
 ---
 
@@ -70,5 +71,5 @@ echo "Scraped to $output"
 
 ---
 
-> BuiltByWill // Silent Prototype Labs  
+> BuiltByWill™ // Silent Prototype Labs  
 > Phase 1 complete. Echo machine online.

@@ -1,5 +1,5 @@
 // ===============================================================
-// trainer.c Silent Prototype — BuiltByWill
+// memory_builder .c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Trainer v3.0
 // ===============================================================
 
