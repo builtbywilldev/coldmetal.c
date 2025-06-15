@@ -1,7 +1,7 @@
 // ===============================================================
 //  memory.c — Persistent Memory Loader & Embedding Engine
-// Silent Prototype — BuiltByWill
-// Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
+//  Silent Prototype — BuiltByWill
+//  Phase-Coded Artifact of Morpheus // Tactical Intelligence Unit
 // ===============================================================
 
 #include <stdio.h>
@@ -9,15 +9,19 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "tokenizer.h"
 #include "embedder.h"
 #include "memory.h"
 
 #define MAX_MEMORY_ITEMS 9422
+#define MEMORY_DIR "../data/.mem/"
+#define MEMORY_FILE "../data/.mem/morpheus.mem"
 
-MemoryItem memory[MAX_MEMORY_ITEMS];
-int memory_count = 0;
+static MemoryItem memory[MAX_MEMORY_ITEMS];
+static int memory_count = 0;
 
 // ===============================================================
 // 📥 Load a Single Memory File
@@ -33,17 +37,21 @@ void load_memory(const char* filename) {
     while (fgets(line, sizeof(line), file)) {
         if (memory_count >= MAX_MEMORY_ITEMS) break;
 
-        line[strcspn(line, "\n")] = '\0';  // Strip newline
+        line[strcspn(line, "\n")] = '\0';
 
-        // Check for type prefix like Q|| or A||
-        char type = 'U';  // default: Unknown
+        char type = 'U';
         char* content = line;
         if (line[1] == '|' && line[2] == '|') {
             type = line[0];
-            content = &line[3];  // skip "T||"
+            content = &line[3];
         }
 
-        remember_with_type(content, type);
+        strncpy(memory[memory_count].content, content, MAX_MEMORY_LEN);
+        memory[memory_count].content[MAX_MEMORY_LEN - 1] = '\0';
+        embed_text(memory[memory_count].content, memory[memory_count].vector);
+        memory[memory_count].type = type;
+        memory[memory_count].value = 1.0f;
+        memory_count++;
     }
 
     fclose(file);
@@ -53,34 +61,34 @@ void load_memory(const char* filename) {
 // 📦 Load All Memory Files from Disk
 // ===============================================================
 void load_all_memories() {
-    const char* folder = "data/.mem/";
-    DIR* dir = opendir(folder);
-    struct dirent* entry;
+    struct stat st = {0};
+    if (stat(MEMORY_DIR, &st) == -1) {
+        mkdir(MEMORY_DIR, 0700);
+    }
 
+    DIR* dir = opendir(MEMORY_DIR);
     if (!dir) {
-        printf("⚠️  Could not open memory directory: %s\n", folder);
+        printf("⚠️  Could not open memory directory: %s\n", MEMORY_DIR);
         return;
     }
 
+    struct dirent* entry;
     while ((entry = readdir(dir)) != NULL) {
         if (strstr(entry->d_name, ".txt")) {
             char path[512];
-            snprintf(path, sizeof(path), "%s%s", folder, entry->d_name);
+            snprintf(path, sizeof(path), "%s%s", MEMORY_DIR, entry->d_name);
             load_memory(path);
         }
-
         if (memory_count >= MAX_MEMORY_ITEMS) break;
     }
 
     closedir(dir);
 
-    // 🔄 Load persistent chat log last
-    load_memory("data/.mem/morpheus.mem");
+    load_memory(MEMORY_FILE);  // always last
 }
 
 // ===============================================================
-// 💾 Save All Current Memory to File (Snapshot)
-// Format: T||Text
+// 💾 Save All Current Memory to File
 // ===============================================================
 void save_memory(const char* filename) {
     FILE* file = fopen(filename, "w");
@@ -97,29 +105,29 @@ void save_memory(const char* filename) {
 }
 
 // ===============================================================
-// 🧠 Remember: Append New Memory & Store in Vector Space
-// Defaults to Unknown type ('U')
+// ➕ Add New Memory
 // ===============================================================
 void remember(const char* text) {
     remember_with_type(text, 'U');
 }
 
-// ===============================================================
-// 🧠 Tagged Memory Storage
-// Called from upgraded memory_builder.c
-// ===============================================================
 void remember_with_type(const char* text, char type) {
     if (memory_count >= MAX_MEMORY_ITEMS) return;
 
     strncpy(memory[memory_count].content, text, MAX_MEMORY_LEN);
     memory[memory_count].content[MAX_MEMORY_LEN - 1] = '\0';
-
     embed_text(memory[memory_count].content, memory[memory_count].vector);
+
     memory[memory_count].type = type;
+    memory[memory_count].value = 1.0f;
     memory_count++;
 
-    // Also persist to morpheus.mem
-    FILE* f = fopen("data/.mem/morpheus.mem", "a");
+    struct stat st = {0};
+    if (stat(MEMORY_DIR, &st) == -1) {
+        mkdir(MEMORY_DIR, 0700);
+    }
+
+    FILE* f = fopen(MEMORY_FILE, "a");
     if (f) {
         fprintf(f, "%c||%s\n", type, text);
         fclose(f);
@@ -129,11 +137,14 @@ void remember_with_type(const char* text, char type) {
 }
 
 // ===============================================================
-// 🛠️ Accessors & Utilities
+// 🧰 Utilities
 // ===============================================================
 void print_memory() {
     for (int i = 0; i < memory_count; i++) {
-        printf("• (%c) %s\n", memory[i].type, memory[i].content);
+        printf("• (%c) [$%.2f COLD] %s\n",
+               memory[i].type,
+               memory[i].value,
+               memory[i].content);
     }
 }
 
@@ -149,4 +160,20 @@ float* memory_get_vector(int index) {
 const char* memory_get_text(int index) {
     if (index < 0 || index >= memory_count) return "[invalid memory]";
     return memory[index].content;
+}
+
+char memory_get_type(int index) {
+    if (index < 0 || index >= memory_count) return '?';
+    return memory[index].type;
+}
+
+float memory_get_value(int index) {
+    if (index < 0 || index >= memory_count) return 0.0f;
+    return memory[index].value;
+}
+
+void score_memory(int index, float delta) {
+    if (index < 0 || index >= memory_count) return;
+    memory[index].value += delta;
+    if (memory[index].value < 0.0f) memory[index].value = 0.0f;
 }
