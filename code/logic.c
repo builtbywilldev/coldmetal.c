@@ -7,6 +7,7 @@
 #include <string.h>
 #include <ctype.h>
 #include <stdio.h>
+#include <stdlib.h>  // ✅ For rand() and RAND_MAX
 #include <math.h>
 
 #include "tokenizer.h"
@@ -16,13 +17,10 @@
 #include "logic.h"
 #include "softmax.h"
 
-// ---------------------------------------------------------------
-// 🧠 Advanced Weighted Semantic Matching + $COLD Boost
-// ---------------------------------------------------------------
 const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
     float input_vec[EMBEDDING_SIZE] = {0.0f};
 
-    // === [1] Embed + Normalize Input Vector ===
+    // [1] Embed + Normalize Input Vector
     for (int i = 0; i < num_tokens; i++) {
         float temp[EMBEDDING_SIZE];
         embed_token(tokens[i], temp);
@@ -35,54 +33,84 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
     }
     normalize_vector(input_vec, EMBEDDING_SIZE);
 
-    // === [2] Scan Memory and Score ===
+    // [2] Score All Memories
     int mem_count = memory_count_items();
+    float scores[mem_count];
     float best_score = -1.0f;
     int best_index = -1;
-    float scores[mem_count];
 
     for (int i = 0; i < mem_count; i++) {
-        float* mem_vec = memory_get_vector(i);
-        float mem_copy[EMBEDDING_SIZE];
-        memcpy(mem_copy, mem_vec, sizeof(float) * EMBEDDING_SIZE);
-        normalize_vector(mem_copy, EMBEDDING_SIZE);
+        float vec[EMBEDDING_SIZE];
+        memcpy(vec, memory_get_vector(i), sizeof(vec));
+        normalize_vector(vec, EMBEDDING_SIZE);
 
-        float similarity = cosine_similarity(input_vec, mem_copy, EMBEDDING_SIZE);
-        float value = memory_get_value(i);
-        float boosted = similarity * (0.8f + 0.2f * fminf(value, 5.0f));  // ⬅️ Cap $COLD weight to prevent overfitting
+        float sim = cosine_similarity(input_vec, vec, EMBEDDING_SIZE);
+        float val = memory_get_value(i);
+        float score = sim * (0.8f + 0.2f * fminf(val, 5.0f));
+        scores[i] = score;
 
-        scores[i] = boosted;
-
-        if (boosted > best_score) {
-            best_score = boosted;
+        if (score > best_score) {
+            best_score = score;
             best_index = i;
         }
     }
 
-    // === [3] Echo Filter ===
-    const char* matched = memory_get_text(best_index);
-    if (best_score > 0.97f && matched != NULL && strstr(matched, tokens[0])) {
+    const char* match = memory_get_text(best_index);
+    if (best_score > 0.97f && match && strstr(match, tokens[0])) {
         return "🌀 Repetition detected. Let’s evolve this idea.";
     }
 
-    // === [4] Softmax Vector (Optional Preview) ===
     float softmaxed[mem_count];
     softmax(scores, softmaxed, mem_count);
 
-    // === [5] High-Confidence Direct Recall ===
+    // [3] High-Confidence Direct Recall
     if (best_score > 0.88f && best_index >= 0) {
-        score_memory(best_index, 0.2f);  // Auto-reward for triggering memory
+        score_memory(best_index, 0.2f);
         return memory_get_text(best_index);
     }
 
-    // === [6] Mid-Confidence Thought Reflection ===
-    if (best_score > 0.75f && best_index >= 0) {
+    // [4] Mid-Confidence: Top-K Sampling
+    if (best_score > 0.6f) {
+        int top_k = 3;
+        int indices[top_k];
+        float probs[top_k];
+
+        for (int i = 0; i < top_k; i++) {
+            float max = -1.0f;
+            int max_idx = -1;
+            for (int j = 0; j < mem_count; j++) {
+                int skip = 0;
+                for (int k = 0; k < i; k++) {
+                    if (indices[k] == j) skip = 1;
+                }
+                if (!skip && softmaxed[j] > max) {
+                    max = softmaxed[j];
+                    max_idx = j;
+                }
+            }
+            indices[i] = max_idx;
+            probs[i] = softmaxed[max_idx];
+        }
+
+        float r = (float)rand() / (float)RAND_MAX;
+        float accum = 0.0f;
+        for (int i = 0; i < top_k; i++) {
+            accum += probs[i];
+            if (r <= accum) {
+                score_memory(indices[i], 0.1f);
+                return memory_get_text(indices[i]);
+            }
+        }
+        return memory_get_text(indices[0]);
+    }
+
+    // [5] Low-Confidence: Reflection
+    if (best_score > 0.4f) {
         static char buffer[MAX_MEMORY_LEN + 64];
-        snprintf(buffer, sizeof(buffer), "Closest I found: \"%s\"", memory_get_text(best_index));
-        score_memory(best_index, 0.1f);
+        snprintf(buffer, sizeof(buffer), "Closest I found: \"%s\"", match);
         return buffer;
     }
 
-    // === [7] Unknown Recall: Echo the vibe back ===
+    // [6] No Match: Passive Acknowledgment
     return "I don't recognize that yet — but I'm listening.";
 }
