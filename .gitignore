@@ -18,3 +18,5 @@ train_model
 memory_builder
 morpheus.mem
 
+code/data/.mem/*.mem
+data/.mem/*.mem
