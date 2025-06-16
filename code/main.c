@@ -15,6 +15,7 @@
 #include "attention.h"
 #include "memory.h"
 #include "logic.h"
+#include "mint.h"
 
 #define MEMORY_PATH "data/.mem/morpheus.mem"
 
@@ -67,6 +68,7 @@ int main()
         }
 
         // === Command: Peek ===
+
         if (strncmp(input, "peek", 4) == 0)
         {
             int index;
@@ -87,6 +89,21 @@ int main()
             else
             {
                 print_memory();
+            }
+            continue;
+        }
+
+        // === Command: Mint ===
+        if (strncmp(input, "mint", 4) == 0)
+        {
+            int index;
+            if (sscanf(input, "mint %d", &index) == 1)
+            {
+                mint_from_mem(index);
+            }
+            else
+            {
+                printf("Usage: mint [index]\n");
             }
             continue;
         }
