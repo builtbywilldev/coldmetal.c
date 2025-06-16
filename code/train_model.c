@@ -38,7 +38,6 @@ int main(int argc, char *argv[]) {
             char fullpath[512];
             snprintf(fullpath, sizeof(fullpath), "%s/%s", folder, entry->d_name);
 
-
             float *vec = load_vector(fullpath);
             if (!vec) continue;
 
@@ -51,10 +50,10 @@ int main(int argc, char *argv[]) {
         }
 
         closedir(dir);
-        printf("Epoch %d complete ✅\n", e + 1);
+        printf("Epoch %d complete \u2705\n", e + 1);
     }
 
     save_weights("model.weights");
-    printf("✅ Training complete. Weights saved to model.weights\n");
+    printf("\u2705 Training complete. Weights saved to model.weights\n");
     return 0;
-}
+} 

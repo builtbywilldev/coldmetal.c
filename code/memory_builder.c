@@ -1,5 +1,5 @@
 // ===============================================================
-// memory_builder .c Silent Prototype — BuiltByWill
+// memory_builder.c Silent Prototype — BuiltByWill
 // Phase-Coded Artifact of Morpheus // Trainer v3.0
 // ===============================================================
 
@@ -13,7 +13,7 @@
 void train_from_json(const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
-        printf("❌ Failed to open JSON: %s\n", path);
+        printf("\u274c Failed to open JSON: %s\n", path);
         return;
     }
 
@@ -57,7 +57,7 @@ void train_from_json(const char* path) {
 void train_from_txt(const char* path) {
     FILE* file = fopen(path, "r");
     if (!file) {
-        printf("❌ Failed to open TXT: %s\n", path);
+        printf("\u274c Failed to open TXT: %s\n", path);
         return;
     }
 
@@ -82,7 +82,6 @@ void train_from_txt(const char* path) {
     fclose(file);
 }
 
-// 🔥 THIS is what the linker needs
 int main(int argc, char* argv[]) {
     if (argc != 3) {
         printf("Usage: %s [input.json|txt] [output.mem]\n", argv[0]);
@@ -99,6 +98,6 @@ int main(int argc, char* argv[]) {
     }
 
     save_memory(output_path);
-    printf("✅ Saved memory to %s\n", output_path);
+    printf("\u2705 Saved memory to %s\n", output_path);
     return 0;
 }
