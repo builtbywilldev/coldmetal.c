@@ -1,32 +1,44 @@
-# 🔥 Coldmetal.c™ — Dependency-Free AI Memory Engine (C) 
+# 🔥 Coldmetal.c™ — Dependency-Free AI Memory Engine (C)  
 📌 This repo is *read-only*. Coldmetal is proprietary.  
-No license is granted. Forking is unauthorized. Cloning is not consent.
+No license is granted. Forking is unauthorized. Cloning is not consent.  
 A fully offline, zero-dependency AI system inspired by `llm.c` — engineered for airgapped environments.  
-Built in pure C with no Python, no external libraries, and no cloud ties.  
+Built in pure C with no Python, no external libraries, and no cloud ties.
 
-> "Proof that intelligence doesn’t require a subscription."  
+> "Proof that intelligence doesn’t require a subscription."
 
 ---
 
 ### ✅ What's Inside
 
-- 🧠 `tokenizer.c`: Converts input to raw tokens.
-- 🧩 `embedder.c`: Turns tokens into float vectors.
-- 🎯 `attention.c`: Computes cosine similarity to find relevant meaning.
-- 🧠 `logic.c`: Uses memory recall and rules to generate responses.
-- 🧠 `memory.c`: Persistent `.mem` file format for long-term learning.
-- 🔁 `trainer.c`: Learn new ideas from any `.txt` file.
+- 🧠 `tokenizer.c`: Converts input to raw tokens  
+- 🧩 `embedder.c`: Turns tokens into float vectors  
+- 🎯 `attention.c`: Computes cosine similarity  
+- 🧠 `logic.c`: Selects relevant memories for reply  
+- 💾 `memory.c`: Persistent `.mem` file format  
+- 🔁 `trainer.c`: Learns from any `.txt` file  
+- 🤖 `main.c`: Terminal REPL interface  
+- 💸 `mint.c`: $COLD economy for memory value  
 
 ---
 
-### 📚 Pretrained `.mem` files (so far)
-- `tiny-shakespeare.mem`
-- `tiny-poe.mem`
-- `dracula.mem`
-- `sherlock.mem`
-- `declaration.mem`
-- `snowden.mem`
-- And more...
+### 📚 Trained `.mem` Files (So Far)
+
+- `tiny-poe.mem`  
+- `dracula.mem`  
+- `declaration.mem`  
+- `flatland.mem`  
+- `history-of-egypt.mem`  
+- `gptchatjun-25.mem`  
+- `morpheus.mem`  
+- And 30+ more…
+
+---
+
+### 🔧 Optional: Web Scraper
+
+- `lynx`-based, 1-dependency scraper  
+- Dumps plaintext from any URL  
+- Output goes to `data/untrained/*.txt`
 
 ---
 
@@ -34,44 +46,20 @@ Built in pure C with no Python, no external libraries, and no cloud ties.
 
 Coldmetal.c™ is proprietary software.  
 It is not open-source. It is not a model. It is not a chatbot.  
-Do not use this code without written permission from BuiltByWill™.
-
-For access inquiries or research partnerships: builtbywill@proton.me
-
-
-
----
-
-### 🔧 Optional: Web Scraper for Custom Training
-
-If you want to train your own `.txt` files from websites (like Project Gutenberg), we include an optional **1-dependency scraper** using:
-
-- `lynx` (console web browser — install via your package manager)
-
-#### `scrape.sh`
-```bash
-#!/bin/bash
-url="$1"
-output="$2"
-lynx -dump "$url" > "$output"
-echo "Scraped to $output"
-```
-
-📦 Usage:
-```bash
-./scrape.sh "https://www.gutenberg.org/cache/epub/600/pg600-images.html" "data/untrained/frankenstein.txt"
-```
+Use without permission is prohibited.  
+Contact: **builtbywill@proton.me**
 
 ---
 
 ### 🛠️ Next Steps
 
-- Upgrade `tokenizer.c` to include real token math (subwords, frequencies, etc.)
-- Add attention-based multi-line memory.
-- Experiment with `.mem` merging logic for deeper training.
-- Long term: compressed embedding files and vector search tree logic.
+- Smarter token compression  
+- Memory merge logic  
+- Branching memory banks  
+- Advanced vector search  
+- Bootable OS integration  
 
 ---
 
 > BuiltByWill™ // Silent Prototype Labs  
-> Phase 1 complete. Echo machine online.
+> Phase 4 complete. Echo machine online.
