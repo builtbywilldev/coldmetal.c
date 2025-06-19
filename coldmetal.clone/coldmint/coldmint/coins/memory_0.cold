@@ -1,0 +1,6 @@
+{
+  "index": 0,
+  "content": "[{"title": "coldemetal.c compiler NEED", "create_time": 1749435594.178272, "update_time": 1749963146.267547, "mapping": {"client-created-root": {"id": "client-created-root", "message": null, "parent": null, "children": ["5b482e11-d21d-4b0c-9339-9c32e05d898f"]}, "5b482e11-d21d-4b0c-9339-9c32e05d898f": {"id": "5b482e11-d21d-4b0c-9339-9c32e05d898f", "message": {"id": "5b482e11-d21d-4b0c-9339-9c32e05d898f", "author": {"role": "system", "name": null, "metadata": {}}, "create_time": null, "update_time": null, "content": {"content_type": "text", "parts": [""]}, "status": "finished_successfully", "end_turn": true, "weight": 0.0, "metadata": {"is_visually_hidden_from_conversation": true}, "recipient": "all", "channel": null}, "parent": "client-created-root", "children": ["532b40e7-cb45-4873-900f-7770f8095a95"]}, "532b40e7-cb45-4873-900f-7770f8095a95": {"id": "532b40e7-cb45-4873-900f-7770f8095a95", "message": {"id": "532b40e7-cb45-4873-900f-7770f8095a95", "author": {"role": "system", "name": null, "metadata": {}}, "cr",
+  "minted_at": "2025-06-16T10:03:05",
+  "value": 10
+}

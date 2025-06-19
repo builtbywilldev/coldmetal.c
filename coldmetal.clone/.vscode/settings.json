@@ -1,0 +1,10 @@
+{
+    "files.associations": {
+        "attention.h": "c",
+        "memory.h": "c",
+        "embedder.h": "c",
+        "tokenizer.h": "c",
+        "math.h": "c",
+        "float.h": "c"
+    }
+}

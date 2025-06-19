@@ -1,0 +1,12 @@
+compile command june,17 2025 
+
+gcc main.c memory.c tokenizer.c embedder.c attention.c logic.c mint.c model.c math.c softmax.c -o morpheus -lm
+
+
+this one compiled clean and will hopefully continue to work unless we add more files
+
+huge steps were made with restructure and memory recall
+
+----------------------------------------------------------------------------------------------------------------
+
+

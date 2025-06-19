@@ -1,0 +1,143 @@
+.
+├── attention.c
+├── attention.h
+├── bin
+│   ├── morpheus
+│   └── test_embedder
+├── coldmetal__trainer
+├── coldmetal__trainer.c
+├── coldmint
+│   ├── coins
+│   ├── coldmint
+│   │   └── coins
+│   ├── ledger
+│   │   ├── cold_balance.json
+│   │   ├── mint_tracker.log
+│   │   └── tips.log
+│   ├── README.md
+│   ├── schema.json
+│   └── vault
+├── cold.txt
+├── config.h
+├── data
+│   ├── code
+│   │   └── data
+│   ├── data-archive
+│   │   ├── adventures-tom-sawyer.txt
+│   │   ├── a-select-glossary.txt
+│   │   ├── BEOWULF.txt
+│   │   ├── book-of-damned.txt
+│   │   ├── Carmilla.txt
+│   │   ├── cia.txt
+│   │   ├── CONTEMPORARY-review.txt
+│   │   ├── conversations.json
+│   │   ├── crime-and-punishment.txt
+│   │   ├── criminal-psychology.txt
+│   │   ├── DeclerationofIndependence.txt
+│   │   ├── de-ellendiegen.txt
+│   │   ├── divine-comedy.txt
+│   │   ├── dracula.txt
+│   │   ├── FEDERALIST-PAPERS.txt
+│   │   ├── flatland.txt
+│   │   ├── Frankenstein.txt
+│   │   ├── gandhi.txt
+│   │   ├── gptchatjun-25-html.txt
+│   │   ├── gptconvojun-25.txt
+│   │   ├── haiku.txt
+│   │   ├── history-of-egypt.txt
+│   │   ├── humorous-short-stories.txt
+│   │   ├── indian-defense.txt
+│   │   ├── KYBALION.txt
+│   │   ├── Les-belles-de-nuit.txt
+│   │   ├── LES-MISÉRABLES.txt
+│   │   ├── lovecraft.txt
+│   │   ├── meditatons.txt
+│   │   ├── moby-dick.txt
+│   │   ├── morpheus.mem
+│   │   ├── MYSTERIOUS-stranger.txt
+│   │   ├── noted-from-the-underground.txt
+│   │   ├── nueralnetworks-uc-berkley.txt
+│   │   ├── origin-species.txt
+│   │   ├── remarkable-criminals.txt
+│   │   ├── shalespeare-complete.txt
+│   │   ├── snowden.txt
+│   │   ├── the-king-in-yellow.txt
+│   │   ├── the-republic.txt
+│   │   ├── the-soul-of-man
+│   │   ├── tiny-poe-02.txt
+│   │   ├── tiny-poe.txt
+│   │   ├── tiny-shakespeare.txt
+│   │   ├── triplanetary.txt
+│   │   ├── true-stories-of-crime.txt
+│   │   ├── usconstitution.txt
+│   │   ├── war-and-peace
+│   │   └── zarathustra.txt
+│   └── untrained
+├── demos
+│   ├── hallucinations
+│   │   └── Hallucination.png
+│   ├── phase-01
+│   │   ├── 50mb-one-shot.png
+│   │   ├── coldmetal.c.png
+│   │   ├── coldmetal-phase3.png
+│   │   ├── data-trained.png
+│   │   ├── just-an-echo.png
+│   │   ├── math.png
+│   │   ├── phase-03-terminal.png
+│   │   ├── small-progress.png
+│   │   └── struggle.png
+│   ├── README.md
+│   ├── top-k-responses.png
+│   ├── training.png
+│   ├── trying.png
+│   └── videos
+│       ├── phase-03-video.mp4
+│       └── phase-03-video.webm
+├── docs
+│   ├── 01-PHASE.md
+│   ├── 02-PHASE.md
+│   ├── 03-PHASE.md
+│   └── 04-PHASE.md
+├── embedder.c
+├── embedder.h
+├── filetree.txt
+├── LICENSE
+├── logic.c
+├── logic.h
+├── main.c
+├── math.c
+├── math.h
+├── memory_builder
+├── memory_builder.c
+├── memory.c
+├── memory.h
+├── memory_loader
+├── memory_loader.c
+├── mint.c
+├── mint.h
+├── model.c
+├── model.h
+├── model.weights
+├── morpheus
+├── README.md
+├── scripts
+│   ├── build.sh
+│   ├── fullstack_train.sh
+│   ├── scrape.sh
+│   ├── train_batch.sh
+│   └── trainer_all.sh
+├── softmax.c
+├── softmax.h
+├── tests
+│   ├── math_test
+│   ├── math_test.c
+│   ├── README.md
+│   └── test_embedder.c
+├── tokenizer.c
+├── tokenizer.h
+├── train
+├── trainer
+├── train_model
+└── train_model.c
+
+19 directories, 121 files

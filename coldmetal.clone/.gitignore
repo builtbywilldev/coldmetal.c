@@ -1,0 +1,22 @@
+# Coldmetal Memory Files
+data/data-archive/conversations.json
+data/.mem/conversations.mem
+# Memory artifacts
+code/data/.mem/morpheus.mem
+data/.mem/gptchatjun-25-html.mem
+data/.mem/gptconvojun-25.mem
+data/.mem/morpheus.mem
+
+# Raw input data
+data/data-archive/gptchatjun-25-html.txt
+data/data-archive/gptconvojun-25.txt
+
+# Weights + compiled binaries
+model.weights
+morpheus
+train_model
+memory_builder
+morpheus.mem
+
+code/data/.mem/*.mem
+data/.mem/*.mem

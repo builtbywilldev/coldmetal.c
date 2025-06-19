@@ -21,6 +21,25 @@
 #include "softmax.h"
 
 const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
+    static char buffer[MAX_MEMORY_LEN + 128];
+
+    // [0] Handle minting mode
+    if (num_tokens == 1 && strcmp(tokens[0], "::mint") == 0) {
+        int best_index = 0;
+        float highest_val = 0.0f;
+        for (int i = 0; i < memory_count_items(); i++) {
+            float val = memory_get_value(i);
+            if (val > highest_val) {
+                highest_val = val;
+                best_index = i;
+            }
+        }
+        snprintf(buffer, sizeof(buffer),
+            "{ \"minted\": \"%s\", \"value\": %.2f }",
+            memory_get_text(best_index), highest_val);
+        return buffer;
+    }
+
     float input_vec[EMBEDDING_SIZE] = {0.0f};
 
     // [1] Embed + Normalize Input Vector
@@ -38,6 +57,12 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
 
     // [2] Score All Memories
     int mem_count = memory_count_items();
+    if (mem_count == 0) {
+        snprintf(buffer, sizeof(buffer),
+            "{ \"text\": \"No memories yet.\", \"score\": 0.0, \"new\": true }");
+        return buffer;
+    }
+
     float scores[mem_count];
     float best_score = -1.0f;
     int best_index = -1;
@@ -49,7 +74,7 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
 
         float sim = cosine_similarity(input_vec, vec, EMBEDDING_SIZE);
         float val = memory_get_value(i);
-        float score = sim * (0.8f + 0.2f * fminf(val, 5.0f));
+        float score = sim * logf(1.0f + val);  // COLD SCALING LOGIC
         scores[i] = score;
 
         if (score > best_score) {
@@ -60,7 +85,10 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
 
     const char* match = memory_get_text(best_index);
     if (best_score > 0.97f && match && strstr(match, tokens[0])) {
-        return "🌀 Repetition detected. Let’s evolve this idea.";
+        snprintf(buffer, sizeof(buffer),
+            "{ \"text\": \"🌀 Repetition detected. Let’s evolve this idea.\", \"score\": %.2f, \"new\": true }",
+            best_score);
+        return buffer;
     }
 
     float softmaxed[mem_count];
@@ -69,11 +97,14 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
     // [3] High-Confidence Direct Recall
     if (best_score > 0.88f && best_index >= 0) {
         score_memory(best_index, 0.2f);
-        return memory_get_text(best_index);
+        snprintf(buffer, sizeof(buffer),
+            "{ \"text\": \"%s\", \"score\": %.2f, \"new\": false }",
+            memory_get_text(best_index), best_score);
+        return buffer;
     }
 
     // [4] Mid-Confidence: Top-K Sampling
-    if (best_score > 0.6f) {
+    if (best_score > 0.4f) {
         int top_k = 3;
         int indices[top_k];
         float probs[top_k];
@@ -101,19 +132,28 @@ const char* generate_response(char tokens[][MAX_TOKEN_LEN], int num_tokens) {
             accum += probs[i];
             if (r <= accum) {
                 score_memory(indices[i], 0.1f);
-                return memory_get_text(indices[i]);
+                snprintf(buffer, sizeof(buffer),
+                    "{ \"text\": \"%s\", \"score\": %.2f, \"new\": false }",
+                    memory_get_text(indices[i]), best_score);
+                return buffer;
             }
         }
-        return memory_get_text(indices[0]);
+        snprintf(buffer, sizeof(buffer),
+            "{ \"text\": \"%s\", \"score\": %.2f, \"new\": false }",
+            memory_get_text(indices[0]), best_score);
+        return buffer;
     }
 
     // [5] Low-Confidence: Reflection
-    if (best_score > 0.4f) {
-        static char buffer[MAX_MEMORY_LEN + 64];
-        snprintf(buffer, sizeof(buffer), "Closest I found: \"%s\"", match);
+    if (best_score > 0.1f) {
+        snprintf(buffer, sizeof(buffer),
+            "{ \"text\": \"Closest I found: %s\", \"score\": %.2f, \"new\": true }",
+            match ? match : "none", best_score);
         return buffer;
     }
 
     // [6] No Match: Passive Acknowledgment
-    return "I don't recognize that yet — but I'm listening.";
+    snprintf(buffer, sizeof(buffer),
+        "{ \"text\": \"I don't recognize that yet — but I'm listening.\", \"score\": 0.0, \"new\": true }");
+    return buffer;
 }
