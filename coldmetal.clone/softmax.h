@@ -5,12 +5,10 @@
 // Purpose: Converts raw vectors into probability distributions
 // Linked to: softmax.c
 // ===============================================================
-
+// softmax.h
 #ifndef SOFTMAX_H
 #define SOFTMAX_H
 
-// 🔥 Softmax Function for Probability Mapping
-// Converts raw scores into a stable probability distribution
 void softmax(const float* input, float* output, int length);
 
-#endif  // SOFTMAX_H
+#endif
