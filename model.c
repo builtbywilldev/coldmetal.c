@@ -89,7 +89,7 @@ float compute_loss(float *output, float *target) {
 }
 
 // ------------------------------------------------------------
-// 🧠 Update Weights Based on Loss
+// 🧠 Update Weights Based on Loss - bettwer response
 // ------------------------------------------------------------
 void update_weights(float *input, float *target, float *output, float loss) {
     const float lr = 0.01f;  // 🔧 Learning rate
@@ -101,3 +101,5 @@ void update_weights(float *input, float *target, float *output, float loss) {
         }
     }
 }
+
+
