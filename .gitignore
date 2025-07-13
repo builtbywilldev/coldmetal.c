@@ -20,3 +20,4 @@ morpheus.mem
 
 code/data/.mem/*.mem
 data/.mem/*.mem
+settings.json

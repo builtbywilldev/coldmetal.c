@@ -5,6 +5,7 @@
         "embedder.h": "c",
         "tokenizer.h": "c",
         "math.h": "c",
-        "float.h": "c"
+        "float.h": "c",
+        "string.h": "c"
     }
 }
